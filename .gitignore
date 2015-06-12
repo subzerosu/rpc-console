@@ -1,3 +1,30 @@
+# Java
+*.class
+
+# Package Files
+*.jar
+*.war
+*.ear
+
+# Eclipse
+/bin/
+/build/
+/.buildpath
+
+# Windows
+Thumbs.db
+
+# OsX
+/.DS_Store
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# maven
 target/
 pom.xml.tag
 pom.xml.releaseBackup
