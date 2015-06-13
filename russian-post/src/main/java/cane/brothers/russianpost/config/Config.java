@@ -19,7 +19,7 @@ public class Config {
 	private static String propFileName = "resources/config.properties";
 	private static String clientSecrets = "resources/client_secrets.json";
 	
-	private static String dataStoreDir = ".store/rpc14";
+	private static String dataStoreDir = ".store/rpc16";
 
 	private static String postLogin;
 	private static String postPassword;

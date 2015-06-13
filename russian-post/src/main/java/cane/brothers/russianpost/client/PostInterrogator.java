@@ -1,7 +1,6 @@
 package cane.brothers.russianpost.client;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.xml.ws.WebServiceException;
@@ -40,11 +39,11 @@ public class PostInterrogator {
 	 * список баркодов с истекшим сроком, посылки по которые возвращаются, уже
 	 * вернулись или совсем древние
 	 */
-	List<String> oldBarcodes = new ArrayList<String>();
-
-	public List<String> getOldBarcodes() {
-		return oldBarcodes;
-	}
+	// List<String> oldBarcodes = new ArrayList<String>();
+	//
+	// public List<String> getOldBarcodes() {
+	// return oldBarcodes;
+	// }
 
 	/**
 	 * сервис ПО
@@ -115,7 +114,9 @@ public class PostInterrogator {
 
 		// cleanup
 		outputEntries.clear();
-		oldBarcodes.clear();
+		// oldBarcodes.clear();
+		Set<PostEntry> delEntries = new HashSet<PostEntry>();
+		Set<PostEntry> oldEntries = new HashSet<PostEntry>();
 
 		if (log.isDebugEnabled()) {
 			log.debug("Делаю запрос по каждому из почтовых отправлений:");
@@ -141,16 +142,18 @@ public class PostInterrogator {
 				PostEntry delayedPost = PostUtils.getDelayedPost(mailing,
 						operHistory);
 				if (delayedPost != null) {
-					outputEntries.add(delayedPost);
+					// outputEntries.add(delayedPost);
+					delEntries.add(delayedPost);
 					if (log.isDebugEnabled()) {
 						log.debug("Добавляем в зависшие посылки: "
 								+ delayedPost);
 					}
 				}
 
-				String oldPost = PostUtils.getOldPost(mailing, operHistory);
+				PostEntry oldPost = PostUtils.getOldPost(mailing, operHistory);
 				if (oldPost != null) {
-					oldBarcodes.add(oldPost);
+					// outputEntries.add(oldPost);
+					oldEntries.add(oldPost);
 					if (log.isDebugEnabled()) {
 						log.debug("Добавляем в список на удаление: " + oldPost);
 					}
@@ -166,8 +169,8 @@ public class PostInterrogator {
 			} catch (WebServiceException we) {
 				log.error("Проблемы с доступом к web-сервису. ", we);
 			}
-			if(log.isDebugEnabled()) {
-			log.info("");
+			if (log.isDebugEnabled()) {
+				log.debug("");
 			}
 		}
 
@@ -175,8 +178,21 @@ public class PostInterrogator {
 			log.debug("Набор входных данных обработали.");
 		}
 
-		if (outputEntries.size() > 0) {
-			log.info("Зависших посылок: {}", outputEntries.size());
+		outputEntries.addAll(delEntries);
+		if (delEntries.size() > 0) {
+			log.info("Зависших посылок: {}", delEntries.size());
+		} else {
+			log.info("Зависших посылок нет.");
 		}
+
+		if (Config.doCleanUp()) {
+			if (oldEntries.size() > 0) {
+				log.info("Посылок на удаление: {}", oldEntries.size());
+			} else {
+				log.info("Посылок для удаления нет.");
+			}
+			
+			outputEntries.addAll(oldEntries);
+		}	
 	}
 }

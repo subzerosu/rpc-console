@@ -23,8 +23,8 @@ public class RussianPostClient {
 
 		// read input
 		// InputData input = new InputData();
-		SpreadsheetInterrogator googleInput = new SpreadsheetInterrogator();
-		Set<PostEntry> inputEntries = googleInput.getPostEntries();
+		SpreadsheetInterrogator googleService = new SpreadsheetInterrogator();
+		Set<PostEntry> inputEntries = googleService.getPostEntries();
 
 		if (inputEntries != null && !inputEntries.isEmpty()) {
 			// set up output
@@ -36,14 +36,16 @@ public class RussianPostClient {
 			// input.getDuplBarcodeAmount()));
 
 			// main handling
-			PostInterrogator service = new PostInterrogator(inputEntries,
+			PostInterrogator postService = new PostInterrogator(inputEntries,
 					outputEntries);
-			if (service.authorize()) {
-				service.checkHistory();
+			
+			if (postService.authorize()) {
+				// прошли авторизацию - читаем историю
+				postService.checkHistory();
 
 				// очищаем файл баркодов до
 				if (Config.doCleanUp()) {
-					// cleanup(input, service.getOldBarcodes());
+					googleService.removeOldPostEntries(outputEntries);
 				}
 
 				// добавляем в выходной набор повторяющиеся записи

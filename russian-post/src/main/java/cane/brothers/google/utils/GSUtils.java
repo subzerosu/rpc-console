@@ -79,35 +79,41 @@ public class GSUtils {
 		return rowValues;
 	}
 
-	public static List<ListEntry> getRowList(
-			SpreadsheetService googleService, SpreadsheetEntry ss)
-			throws IOException, ServiceException {
+	public static List<ListEntry> getRowList(SpreadsheetService googleService,
+			SpreadsheetEntry ss) {
 		List<ListEntry> rows = null;
 
-		if (ss != null) {
-			WorksheetFeed worksheetFeed = googleService.getFeed(
-					ss.getWorksheetFeedUrl(), WorksheetFeed.class);
-			List<WorksheetEntry> worksheets = worksheetFeed.getEntries();
+		try {
+			if (ss != null) {
+				WorksheetFeed worksheetFeed = googleService.getFeed(
+						ss.getWorksheetFeedUrl(), WorksheetFeed.class);
+				List<WorksheetEntry> worksheets = worksheetFeed.getEntries();
 
-			WorksheetEntry worksheet = null;
-			if (worksheets != null && worksheets.size() == 1) {
-				worksheet = worksheets.get(0);
+				WorksheetEntry worksheet = null;
+				if (worksheets != null && worksheets.size() == 1) {
+					worksheet = worksheets.get(0);
+				}
+
+				if (worksheet != null) {
+					URL listFeedUrl = worksheet.getListFeedUrl();
+
+					ListFeed listFeed = googleService.getFeed(listFeedUrl,
+							ListFeed.class);
+
+					rows = listFeed.getEntries();
+				}
 			}
-
-			if (worksheet != null) {
-				URL listFeedUrl = worksheet.getListFeedUrl();
-
-				ListFeed listFeed = googleService.getFeed(listFeedUrl,
-						ListFeed.class);
-
-				rows = listFeed.getEntries();
-			}
+		} 
+		catch (IOException ex1) {
+			log.error("Проблемы с получением строковых даных: ", ex1);
+		} 
+		catch (ServiceException ex2) {
+			log.error("Проблемы c google сервисом: ", ex2);
 		}
 
 		return rows;
-
 	}
-	
+
 	public static List<Map<String, Object>> getRowMap(
 			SpreadsheetService googleService, SpreadsheetEntry ss)
 			throws IOException, ServiceException {

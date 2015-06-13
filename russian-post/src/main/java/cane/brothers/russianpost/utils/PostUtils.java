@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import cane.brothers.russianpost.client.data.DelayedPostEntry;
 import cane.brothers.russianpost.client.data.InvalidPostEntry;
+import cane.brothers.russianpost.client.data.OldPostEntry;
 import cane.brothers.russianpost.client.data.PostEntry;
 import cane.brothers.russianpost.config.Config;
 
@@ -34,7 +35,7 @@ public class PostUtils {
 	 * @param operHistory
 	 * @return
 	 */
-	public static String getOldPost(PostEntry mailing,
+	public static PostEntry getOldPost(PostEntry mailing,
 			OperationHistoryData operHistory) {
 
 		List<OperationHistoryRecord> operHistoryList = operHistory
@@ -72,7 +73,9 @@ public class PostUtils {
 					log.debug("\tПосылка была вручена. " + mailing.getBarcode()
 							+ " [" + operAttr.getName() + "]");
 				}
-				return mailing.getBarcode();
+				//return mailing.getBarcode();
+				return new OldPostEntry(mailing.getBarcode(),
+						mailing.getArticle(), "Посылка была вручена.", -1);
 			}
 
 			// Проверяем была ли посылка доставленна в почтовое отделение
@@ -87,7 +90,7 @@ public class PostUtils {
 				depDeliveredDate = date;
 				address = getDestinationAddress(operRecord);
 				if (log.isDebugEnabled()) {
-					log.debug("\tПосылка доставлена {1} по адресу: {2}",
+					log.debug("\tПосылка доставлена {} по адресу: {}",
 							depDeliveredDate, address);
 				}
 			}
@@ -99,7 +102,9 @@ public class PostUtils {
 							+ ": " + operAttr.getName() + "]");
 				}
 				log.warn("Возврат. Истек срок хранения");
-				return mailing.getBarcode();
+				//return mailing.getBarcode();
+				return new OldPostEntry(mailing.getBarcode(),
+						mailing.getArticle(), "Возврат. Истек срок хранения.", -1);
 			}
 
 			// отказ
@@ -129,13 +134,20 @@ public class PostUtils {
 				log.warn(" От даты поступления посылки в почтовое отделение прошло уже "
 						+ delay + " дней");
 
-				return mailing.getBarcode();
+				//return mailing.getBarcode();
+				return new OldPostEntry(mailing.getBarcode(),
+						mailing.getArticle(), "Старое ПО.", delay);
 			}
 		}
 
 		return null;
 	}
 
+	/**
+	 * @param mailing
+	 * @param operHistory
+	 * @return
+	 */
 	public static PostEntry getDelayedPost(PostEntry mailing,
 			OperationHistoryData operHistory) {
 
@@ -207,7 +219,7 @@ public class PostUtils {
 				depDeliveredDate = date;
 				address = getDestinationAddress(operRecord);
 				if (log.isDebugEnabled()) {
-					log.debug(" Посылка доставлена {1} по адресу: {2}",
+					log.debug(" Посылка доставлена {} по адресу: {}",
 							depDeliveredDate, address);
 				}
 			}
@@ -289,6 +301,42 @@ public class PostUtils {
 		if (output != null && output.size() > 0) {
 			for (PostEntry e : output) {
 				if (e instanceof DelayedPostEntry) {
+					result++;
+				}
+			}
+		} else {
+			if (log.isWarnEnabled()) {
+				log.warn("Выходной набор пуст или не существует.");
+			}
+		}
+
+		return result;
+	}
+	
+	public static int getInvalid(Set<PostEntry> output) {
+		int result = 0;
+
+		if (output != null && output.size() > 0) {
+			for (PostEntry e : output) {
+				if (e instanceof InvalidPostEntry) {
+					result++;
+				}
+			}
+		} else {
+			if (log.isWarnEnabled()) {
+				log.warn("Выходной набор пуст или не существует.");
+			}
+		}
+
+		return result;
+	}
+	
+	public static int getOld(Set<PostEntry> output) {
+		int result = 0;
+
+		if (output != null && output.size() > 0) {
+			for (PostEntry e : output) {
+				if (e instanceof OldPostEntry) {
 					result++;
 				}
 			}

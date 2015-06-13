@@ -11,6 +11,8 @@ import org.codemonkey.simplejavamail.TransportStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cane.brothers.russianpost.client.data.DelayedPostEntry;
+import cane.brothers.russianpost.client.data.InvalidPostEntry;
 import cane.brothers.russianpost.client.data.PostEntry;
 import cane.brothers.russianpost.config.Config;
 import cane.brothers.russianpost.utils.PostUtils;
@@ -30,9 +32,11 @@ public class EmailSender {
 		if (log.isDebugEnabled()) {
 			log.debug("Подготовка к отправке письма...");
 		}
-		
-		int amount = PostUtils.getDelayed(output);
 
+		int amount = PostUtils.getDelayed(output)
+				+ PostUtils.getInvalid(output);
+
+		int old = PostUtils.getOld(output);
 
 		final Email email = new Email();
 		email.setFromAddress(Config.getMailUser(), Config.getMailFrom());
@@ -42,14 +46,25 @@ public class EmailSender {
 		// add body text
 		StringBuilder bodyText = new StringBuilder();
 		if (amount > 0) {
-			bodyText.append("Возможны проблемы со следующими почтовыми отправлениями: ").append("\r\n");
+			bodyText.append(
+					"Возможны проблемы со следующими почтовыми отправлениями: ")
+					.append("\r\n");
 			for (PostEntry postEntry : output) {
-				bodyText.append(postEntry.toString()).append("\r\n");
+
+				if ((postEntry instanceof DelayedPostEntry)
+						|| (postEntry instanceof InvalidPostEntry)) {
+					bodyText.append(postEntry.toString()).append("\r\n");
+				}
+			}
+
+			if (old > 0) {
+				bodyText.append("\r\n").append("Под удаление: ").append(old)
+						.append(" посылок");
 			}
 		} else {
 			bodyText.append("зависших почтовых отправлений нет");
 		}
-		
+
 		email.setText(bodyText.toString());
 
 		log.info("Отправляем письмо на {}", Config.getMailTo());
