@@ -89,8 +89,9 @@ public class GSUtils {
 						ss.getWorksheetFeedUrl(), WorksheetFeed.class);
 				List<WorksheetEntry> worksheets = worksheetFeed.getEntries();
 
+				// берем только первую страницу
 				WorksheetEntry worksheet = null;
-				if (worksheets != null && worksheets.size() == 1) {
+				if (worksheets != null) {
 					worksheet = worksheets.get(0);
 				}
 
