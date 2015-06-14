@@ -1,7 +1,8 @@
 package cane.brothers.russianpost.client.data;
 
 /**
- * Простой POJO класс описывающий почтовое отправление.
+ * Простой POJO класс описывающий почтовое отправление. <br />
+ * Все ПО сортируются по номеру заказа.
  *
  */
 public class PostEntry implements Comparable<PostEntry> {
@@ -51,9 +52,9 @@ public class PostEntry implements Comparable<PostEntry> {
 
 	@Override
 	public int compareTo(PostEntry o) {
-		if (o != null && o.getBarcode() != null) {
-			return this.barcode.toUpperCase().compareTo(
-					o.getBarcode().toUpperCase());
+		if (o != null && o.getArticle() != null) {
+			return this.article.toUpperCase().compareTo(
+					o.getArticle().toUpperCase());
 		} else {
 			return 1;
 		}

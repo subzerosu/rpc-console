@@ -152,10 +152,16 @@ public class PostInterrogator {
 
 				PostEntry oldPost = PostUtils.getOldPost(mailing, operHistory);
 				if (oldPost != null) {
-					// outputEntries.add(oldPost);
-					oldEntries.add(oldPost);
-					if (log.isDebugEnabled()) {
-						log.debug("Добавляем в список на удаление: " + oldPost);
+					if (oldEntries.add(oldPost)) {
+						if (log.isDebugEnabled()) {
+							log.debug("Добавляем в список на удаление: "
+									+ oldPost);
+						}
+					} else {
+						if (log.isDebugEnabled()) {
+							log.debug("Не могу добавить в список на удаление: "
+									+ oldPost);
+						}
 					}
 				}
 			} catch (AuthorizationFault ae) {
@@ -191,8 +197,8 @@ public class PostInterrogator {
 			} else {
 				log.info("Посылок для удаления нет.");
 			}
-			
+
 			outputEntries.addAll(oldEntries);
-		}	
+		}
 	}
 }

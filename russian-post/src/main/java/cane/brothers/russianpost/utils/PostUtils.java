@@ -73,7 +73,7 @@ public class PostUtils {
 					log.debug("\tПосылка была вручена. " + mailing.getBarcode()
 							+ " [" + operAttr.getName() + "]");
 				}
-				//return mailing.getBarcode();
+				// return mailing.getBarcode();
 				return new OldPostEntry(mailing.getBarcode(),
 						mailing.getArticle(), "Посылка была вручена.", -1);
 			}
@@ -102,9 +102,10 @@ public class PostUtils {
 							+ ": " + operAttr.getName() + "]");
 				}
 				log.warn("Возврат. Истек срок хранения");
-				//return mailing.getBarcode();
+				// return mailing.getBarcode();
 				return new OldPostEntry(mailing.getBarcode(),
-						mailing.getArticle(), "Возврат. Истек срок хранения.", -1);
+						mailing.getArticle(), "Возврат. Истек срок хранения.",
+						-1);
 			}
 
 			// отказ
@@ -134,7 +135,7 @@ public class PostUtils {
 				log.warn(" От даты поступления посылки в почтовое отделение прошло уже "
 						+ delay + " дней");
 
-				//return mailing.getBarcode();
+				// return mailing.getBarcode();
 				return new OldPostEntry(mailing.getBarcode(),
 						mailing.getArticle(), "Старое ПО.", delay);
 			}
@@ -243,28 +244,42 @@ public class PostUtils {
 
 		// если доставили в отделение, но не вручили
 		if (isDepDelivered) {
-			Calendar controlCalendar = Calendar.getInstance();
-
-			controlCalendar.setTime(depDeliveredDate);
-			controlCalendar.add(Calendar.DAY_OF_MONTH, Config.getPostDelay());
+			Calendar startControlCalendar = Calendar.getInstance();
+			startControlCalendar.setTime(depDeliveredDate);
+			startControlCalendar.add(Calendar.DAY_OF_MONTH,
+					Config.getPostDelay());
 
 			if (log.isDebugEnabled()) {
 				log.debug(" Контрольная дата вручения: "
-						+ DateUtils.getLongDate(controlCalendar.getTime()));
+						+ DateUtils.getLongDate(startControlCalendar.getTime()));
+			}
+
+			Calendar endControlCalendar = Calendar.getInstance();
+			endControlCalendar.setTime(depDeliveredDate);
+			endControlCalendar.add(Calendar.DAY_OF_MONTH,
+					Config.getDeliveryDelay());
+
+			if (log.isDebugEnabled()) {
+				log.debug(" Контрольная дата хранения: "
+						+ DateUtils.getLongDate(endControlCalendar.getTime()));
 			}
 
 			// задержка
 			int delay = DateUtils.getDayDifference(depDeliveredDate,
 					Config.getDate());
 
-			if (delay >= Config.getPostDelay()) {
+			if (Config.getPostDelay() <= delay) {
 				if (log.isDebugEnabled()) {
 					log.debug(" От даты поступления посылки в почтовое отделение прошло уже "
 							+ delay + " дней");
 				}
 
-				return new DelayedPostEntry(mailing.getBarcode(),
-						mailing.getArticle(), delay, address);
+				if (delay <= Config.getDeliveryDelay()) {
+					return new DelayedPostEntry(mailing.getBarcode(),
+							mailing.getArticle(), delay, address);
+				} else {
+						log.warn(" Срок хранения уже истек");
+				}
 			}
 		}
 		return null;
@@ -312,7 +327,7 @@ public class PostUtils {
 
 		return result;
 	}
-	
+
 	public static int getInvalid(Set<PostEntry> output) {
 		int result = 0;
 
@@ -330,7 +345,7 @@ public class PostUtils {
 
 		return result;
 	}
-	
+
 	public static int getOld(Set<PostEntry> output) {
 		int result = 0;
 

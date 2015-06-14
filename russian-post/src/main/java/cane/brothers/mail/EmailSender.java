@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import cane.brothers.russianpost.client.data.DelayedPostEntry;
 import cane.brothers.russianpost.client.data.InvalidPostEntry;
+import cane.brothers.russianpost.client.data.OldPostEntry;
 import cane.brothers.russianpost.client.data.PostEntry;
 import cane.brothers.russianpost.config.Config;
 import cane.brothers.russianpost.utils.PostUtils;
@@ -48,21 +49,29 @@ public class EmailSender {
 		if (amount > 0) {
 			bodyText.append(
 					"Возможны проблемы со следующими почтовыми отправлениями: ")
-					.append("\r\n");
+					.append("\r\n").append("\r\n");
 			for (PostEntry postEntry : output) {
-
 				if ((postEntry instanceof DelayedPostEntry)
 						|| (postEntry instanceof InvalidPostEntry)) {
 					bodyText.append(postEntry.toString()).append("\r\n");
 				}
 			}
-
-			if (old > 0) {
-				bodyText.append("\r\n").append("Под удаление: ").append(old)
-						.append(" посылок");
-			}
 		} else {
 			bodyText.append("зависших почтовых отправлений нет");
+		}
+
+		bodyText.append("\r\n");
+
+		if (old > 0) {
+			bodyText.append("\r\n").append("Под удаление: ").append(old)
+					.append(" посылок:").append("\r\n").append("\r\n");
+			for (PostEntry postEntry : output) {
+				if (postEntry instanceof OldPostEntry) {
+					bodyText.append(postEntry.toString()).append("\r\n");
+				}
+			}
+		} else {
+			bodyText.append("удалять нечего");
 		}
 
 		email.setText(bodyText.toString());
