@@ -127,7 +127,7 @@ public class PostUtils {
 						+ DateUtils.getLongDate(controlCalendar.getTime()));
 			}
 
-			// задержка возврата
+			// задержка хранения
 			int delay = DateUtils.getDayDifference(depDeliveredDate,
 					Config.getDate());
 
