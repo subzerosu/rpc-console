@@ -209,20 +209,21 @@ public class SpreadsheetInterrogator {
 
 		boolean result = true;
 
-		// get data list
-		List<ListEntry> inputRowList = GSUtils.getRowList(getService(),
-				getTable());
-		if (inputRowList != null) {
-			if (log.isDebugEnabled()) {
-				log.debug("Удаляем старые записи");
-			}
+		if (log.isDebugEnabled()) {
+			log.debug("Удаляем старые записи");
+		}
 
-			// проходим по выходному списку
-			for (PostEntry pe : outputEntries) {
+		// проходим по выходному списку
+		for (PostEntry pe : outputEntries) {
 
-				// интересуют только старые записи
-				if (pe instanceof OldPostEntry) {
-					OldPostEntry oldEntry = (OldPostEntry) pe;
+			// интересуют только старые записи
+			if (pe instanceof OldPostEntry) {
+				OldPostEntry oldEntry = (OldPostEntry) pe;
+
+				// get data list
+				List<ListEntry> inputRowList = GSUtils.getRowList(getService(),
+						getTable());
+				if (inputRowList != null) {
 
 					for (ListEntry row : inputRowList) {
 						String barcode = row.getCustomElements().getValue(
@@ -230,33 +231,42 @@ public class SpreadsheetInterrogator {
 
 						// сверяем по баркоду
 						if (oldEntry.getBarcode().equals(barcode)) {
+
 							try {
 								// Delete the row using the API.
 								row.delete();
+
 								if (log.isDebugEnabled()) {
 									log.debug(
 											" Cтрока с баркодом {} была удалена",
 											barcode);
 								}
+
+								// удалили одну строку, обновляем весь список
+								break;
+
 							} catch (IOException ex) {
 								result &= false;
-								log.error("Не могу удалить строку", ex);
+								log.error("Не могу удалить строку с баркодом "
+										+ barcode, ex);
 							} catch (ServiceException ex2) {
 								result &= false;
-								log.error("Не могу удалить строку", ex2);
+								log.error("Не могу удалить строку с баркодом "
+										+ barcode);
 							} catch (Exception ex3) {
 								result &= false;
-								log.error("Не могу удалить строку", ex3);
+								log.error("Не могу удалить строку с баркодом "
+										+ barcode, ex3);
 							}
 						}
 					}
+
+				} else {
+					log.warn("Нет исходных данных");
 				}
-				
-				// TODO set days
 			}
 
-		} else {
-			log.warn("Нет исходных данных");
+			// TODO set days
 		}
 
 		return result;
