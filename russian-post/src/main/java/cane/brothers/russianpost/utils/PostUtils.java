@@ -61,10 +61,15 @@ public class PostUtils {
 			XMLGregorianCalendar calendar = operParams.getOperDate();
 			Date date = calendar.toGregorianCalendar().getTime();
 
+//			if (log.isDebugEnabled()) {
+//				log.debug(mailing.getBarcode() + ": [Type(" + operType.getId()
+//						+ "): " + operType.getName() + "\t Attr("
+//						+ operAttr.getId() + "): " + operAttr.getName() + "]");
+//			}
 			if (log.isDebugEnabled()) {
-				log.debug(mailing.getBarcode() + ": [Type(" + operType.getId()
-						+ "): " + operType.getName() + "\t Attr("
-						+ operAttr.getId() + "): " + operAttr.getName() + "]");
+				log.debug(" " + mailing + ": [" + DateUtils.getDateTime(date)
+						+ "] (" + operType.getId() + ") " + operType.getName()
+						+ "\t(" + operAttr.getId() + ")" + operAttr.getName());
 			}
 
 			// вручение адресату
@@ -130,6 +135,10 @@ public class PostUtils {
 			// задержка хранения
 			int delay = DateUtils.getDayDifference(depDeliveredDate,
 					Config.getDate());
+			
+			if(log.isDebugEnabled()) {
+				log.debug(" Задержка хранения: " + delay);
+			}
 
 			if (delay >= Config.getDeliveryDelay()) {
 				log.warn(" От даты поступления посылки в почтовое отделение прошло уже "
@@ -185,27 +194,33 @@ public class PostUtils {
 
 			// get type
 			Rtm02Parameter operType = operParams.getOperType();
-			if (log.isDebugEnabled()) {
-				log.debug(" Тип операции: " + operType.getName());
-			}
+//			if (log.isDebugEnabled()) {
+//				log.debug(" Тип операции: " + operType.getName());
+//			}
 
 			// get attributes
 			Rtm02Parameter operAttr = operParams.getOperAttr();
-			if (log.isDebugEnabled()) {
-				log.debug(" Атрибут операции: " + operAttr.getName());
-			}
+//			if (log.isDebugEnabled()) {
+//				log.debug(" Атрибут операции: " + operAttr.getName());
+//			}
 
 			// get date
 			XMLGregorianCalendar calendar = operParams.getOperDate();
 			Date date = calendar.toGregorianCalendar().getTime();
-			if (log.isDebugEnabled()) {
-				log.debug(" Дата операции: {}", date);
-			}
+//			if (log.isDebugEnabled()) {
+//				log.debug(" Дата операции: {}", date);
+//			}
 
+//			if (log.isDebugEnabled()) {
+//				log.debug(" " + mailing.getBarcode() + ": [Type(" + operType.getId()
+//						+ "): " + operType.getName() + "\t Attr("
+//						+ operAttr.getId() + "): " + operAttr.getName() + "]");
+//			}
+			
 			if (log.isDebugEnabled()) {
 				log.debug(" " + mailing + ": [" + DateUtils.getDateTime(date)
-						+ "] (" + operAttr.getId() + ") " + operAttr.getName()
-						+ "\t(" + operType.getId() + ")" + operType.getName());
+						+ "] (" + operType.getId() + ") " + operType.getName()
+						+ "\t(" + operAttr.getId() + ")" + operAttr.getName());
 			}
 
 			// Проверяем была ли посылка доставленна в почтовое отделение

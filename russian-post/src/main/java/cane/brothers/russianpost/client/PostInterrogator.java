@@ -150,6 +150,9 @@ public class PostInterrogator {
 					}
 				}
 
+				if (log.isDebugEnabled()) {
+					log.debug("Ищем старые посылки:");
+				}
 				PostEntry oldPost = PostUtils.getOldPost(mailing, operHistory);
 				if (oldPost != null) {
 					if (oldEntries.add(oldPost)) {
