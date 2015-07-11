@@ -1,5 +1,6 @@
 package cane.brothers.russianpost.utils;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -409,8 +410,9 @@ public class PostUtils {
 	}
 
 	// преобразуем списочные данные к набору ПО
-	public static Set<PostEntry> transformToPost(List<ListEntry> dataRows) {
+	public static Set<PostEntry> transformToPost(List<ListEntry> dataRows, List<String> messages) {
 		Set<PostEntry> barcodes = new TreeSet<PostEntry>();
+		List<InvalidPostEntry> doubledBarcodes = new ArrayList<InvalidPostEntry>(); 
 
 		if (dataRows == null) {
 			log.error("нет исходного списка данных");
@@ -423,11 +425,17 @@ public class PostUtils {
 			String date = row.getCustomElements().getValue("date");
 
 			if (barcode != null && !barcode.isEmpty()) {
-				barcodes.add(new PostEntry(barcode, article, date));
+				PostEntry pe = new PostEntry(barcode, article, date);
+				if(!barcodes.add(pe)) {
+					doubledBarcodes.add(new InvalidPostEntry(pe, "дублирующая запись"));
+					log.error("баркод " + barcode + " в наборе уже существует.");	
+				}
 			} else {
 				log.error("баркод не задан");
 			}
 		}
+		
+		messages.add("Дублей " + doubledBarcodes.size());
 
 		return barcodes;
 	}

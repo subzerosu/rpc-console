@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cane.brothers.google.utils.GSUtils;
+import cane.brothers.russianpost.MessageProvider;
 import cane.brothers.russianpost.client.data.OldPostEntry;
 import cane.brothers.russianpost.client.data.PostEntry;
 import cane.brothers.russianpost.config.Config;
@@ -33,7 +35,7 @@ import com.google.gdata.data.spreadsheet.ListEntry;
 import com.google.gdata.data.spreadsheet.SpreadsheetEntry;
 import com.google.gdata.util.ServiceException;
 
-public class SpreadsheetInterrogator {
+public class SpreadsheetInterrogator implements MessageProvider {
 
 	private static final Logger log = LoggerFactory
 			.getLogger(SpreadsheetInterrogator.class);
@@ -60,6 +62,8 @@ public class SpreadsheetInterrogator {
 	private static SpreadsheetService googleService;
 
 	private static SpreadsheetEntry table = null;
+	
+	private List<String> messages = new ArrayList<String>();
 
 	private static Credential authorize() throws Exception {
 
@@ -181,16 +185,21 @@ public class SpreadsheetInterrogator {
 		}
 		List<ListEntry> inputRowList = GSUtils.getRowList(getService(),
 				getTable());
+		
+		int rows = (inputRowList == null ? 0: inputRowList.size());
+		messages.add("1. В таблице баркодов " + rows + " строк.");
 
 		if (inputRowList != null) {
 			if (log.isDebugEnabled()) {
 				log.debug("Трансформируем в почтовые записи");
 			}
-			barcodes.addAll(PostUtils.transformToPost(inputRowList));
+			barcodes.addAll(PostUtils.transformToPost(inputRowList, messages));
 		} else {
 			log.warn("Нет исходных данных");
 		}
 
+		messages.add("Уникальных строк с баркодами " + barcodes.size());
+		
 		// read barcodes spreadsheet
 		return barcodes;
 	}
@@ -270,6 +279,11 @@ public class SpreadsheetInterrogator {
 		}
 
 		return result;
+	}
+
+	@Override
+	public List<String> getMessage() {
+		return messages;
 	}
 
 }

@@ -1,5 +1,6 @@
 package cane.brothers.mail;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.mail.Message.RecipientType;
@@ -23,7 +24,7 @@ public class EmailSender {
 	private static final Logger log = LoggerFactory
 			.getLogger(EmailSender.class);
 
-	public static boolean sendEmail(Set<PostEntry> output) {
+	public static boolean sendEmail(Set<PostEntry> output, List<String> messages) {
 		// try {
 		// Thread t = new Thread(new EmailRunnable());
 		// t.start();
@@ -47,6 +48,11 @@ public class EmailSender {
 		// add body text
 		StringBuilder bodyText = new StringBuilder();
 		if (amount > 0) {
+			
+			for(String msg: messages) {
+				bodyText.append(msg).append("\r\n");
+			}
+			
 			bodyText.append(
 					"Возможны проблемы со следующими почтовыми отправлениями: ")
 					.append("\r\n").append("\r\n");

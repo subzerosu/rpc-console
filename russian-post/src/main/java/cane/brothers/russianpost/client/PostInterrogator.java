@@ -1,6 +1,8 @@
 package cane.brothers.russianpost.client;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.ws.WebServiceException;
@@ -16,12 +18,13 @@ import org.russianpost.operationhistory.data.OperationHistoryRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cane.brothers.russianpost.MessageProvider;
 import cane.brothers.russianpost.client.data.PostEntry;
 import cane.brothers.russianpost.config.Config;
 import cane.brothers.russianpost.utils.PostUtils;
 
-public class PostInterrogator {
-
+public class PostInterrogator implements MessageProvider {
+	
 	private static final Logger log = LoggerFactory
 			.getLogger(PostInterrogator.class);
 
@@ -50,8 +53,12 @@ public class PostInterrogator {
 	 */
 	private OperationHistoryService service = null;
 	private AuthorizationHeader authorizationHeader = null;
+	
+	private List<String> messages = new ArrayList<String>();
+
 
 	/**
+	 * Constructor
 	 * 
 	 * @param input
 	 * @param output
@@ -75,11 +82,14 @@ public class PostInterrogator {
 				log.debug("Подключились");
 			}
 		} catch (WebServiceException ex) {
+			messages.add("2. Проблемы с доступом к серверу Почты России");
 			log.error("Проблемы с доступом к сервису почтовых отправлений", ex);
 			return false;
 		}
 
+		if(log.isDebugEnabled()) {
 		log.debug("Настраиваем заголовки авторизации");
+		}
 
 		// set up authorization
 		authorizationHeader = new AuthorizationHeader();
@@ -94,6 +104,10 @@ public class PostInterrogator {
 		// for (LanguageData.Language lang : langs) {
 		// System.out.println(lang.getName());
 		// }
+		
+		if (log.isDebugEnabled()) {
+			log.debug("Авторизацию на сервере Почты России прошли успешно.");
+		}
 
 		return true;
 	}
@@ -122,6 +136,9 @@ public class PostInterrogator {
 			log.debug("Делаю запрос по каждому из почтовых отправлений:");
 		}
 
+		int c1 = 0;
+		int c2 = 0;
+		
 		// get operation history
 		OperationHistoryRequest operHistoryRequest = new OperationHistoryRequest();
 
@@ -167,15 +184,19 @@ public class PostInterrogator {
 						}
 					}
 				}
+				c1++;
+				
 			} catch (AuthorizationFault ae) {
 				log.error("Проблемы с авторизацией. ", ae);
 			} catch (LanguageFault le) {
 				log.error("Проблемы с языком запроса. ", le);
 			} catch (OperationHistoryFault he) {
+				c2++;
 				log.error(
 						"Проблемы с запросом истории почтового отправления. ",
 						he);
 			} catch (WebServiceException we) {
+				c2++;
 				log.error("Проблемы с доступом к web-сервису. ", we);
 			}
 			if (log.isDebugEnabled()) {
@@ -186,6 +207,9 @@ public class PostInterrogator {
 		if (log.isDebugEnabled()) {
 			log.debug("Набор входных данных обработали.");
 		}
+		
+		messages.add("2. На сервере Почты России обработано " + c1 + "ПО.");
+		messages.add(" С сервера Почты России история не получена по " + c2 + "ПО.");
 
 		outputEntries.addAll(delEntries);
 		if (delEntries.size() > 0) {
@@ -203,5 +227,10 @@ public class PostInterrogator {
 
 			outputEntries.addAll(oldEntries);
 		}
+	}
+
+	@Override
+	public List<String> getMessage() {
+		return messages;
 	}
 }

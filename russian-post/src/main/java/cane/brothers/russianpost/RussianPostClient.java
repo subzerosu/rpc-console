@@ -1,5 +1,7 @@
 package cane.brothers.russianpost;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -18,13 +20,14 @@ public class RussianPostClient {
 			.getLogger(RussianPostClient.class);
 
 	public static void main(String[] args) {
-
 		log.info("стартовали");
 
+		List<String> msg = new ArrayList<String>();
 		// read input
 		// InputData input = new InputData();
 		SpreadsheetInterrogator googleService = new SpreadsheetInterrogator();
 		Set<PostEntry> inputEntries = googleService.getPostEntries();
+		msg.addAll(googleService.getMessage());
 
 		if (inputEntries != null && !inputEntries.isEmpty()) {
 			// set up output
@@ -40,8 +43,10 @@ public class RussianPostClient {
 					outputEntries);
 			
 			if (postService.authorize()) {
+				
 				// прошли авторизацию - читаем историю
 				postService.checkHistory();
+				msg.addAll(postService.getMessage());
 
 				// очищаем файл баркодов до
 				if (Config.doCleanUp()) {
@@ -58,7 +63,7 @@ public class RussianPostClient {
 				// }
 
 				// send e-mail
-				EmailSender.sendEmail(outputEntries);
+				EmailSender.sendEmail(outputEntries, msg);
 			}
 		}
 
