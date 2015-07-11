@@ -11,7 +11,7 @@ public class InvalidPostEntry extends PostEntry {
 	 * @param reason
 	 */
 	public InvalidPostEntry(PostEntry post, String reason) {
-		super(post.getBarcode(), post.getArticle(), post.getDate());
+		super(post);
 		this.reason = reason;
 	}
 

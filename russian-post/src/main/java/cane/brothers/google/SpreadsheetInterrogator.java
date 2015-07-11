@@ -198,7 +198,7 @@ public class SpreadsheetInterrogator implements MessageProvider {
 			log.warn("Нет исходных данных");
 		}
 
-		messages.add("Уникальных строк с баркодами " + barcodes.size());
+		messages.add(" Уникальных строк с баркодами: " + barcodes.size());
 		
 		// read barcodes spreadsheet
 		return barcodes;
@@ -283,6 +283,7 @@ public class SpreadsheetInterrogator implements MessageProvider {
 
 	@Override
 	public List<String> getMessage() {
+		messages.add("\r\n");
 		return messages;
 	}
 

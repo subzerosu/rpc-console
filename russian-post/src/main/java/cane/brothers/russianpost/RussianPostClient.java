@@ -13,6 +13,7 @@ import cane.brothers.mail.EmailSender;
 import cane.brothers.russianpost.client.PostInterrogator;
 import cane.brothers.russianpost.client.data.PostEntry;
 import cane.brothers.russianpost.config.Config;
+import cane.brothers.russianpost.utils.PostUtils;
 
 public class RussianPostClient {
 
@@ -26,7 +27,7 @@ public class RussianPostClient {
 		// read input
 		// InputData input = new InputData();
 		SpreadsheetInterrogator googleService = new SpreadsheetInterrogator();
-		Set<PostEntry> inputEntries = googleService.getPostEntries();
+		Set<? extends PostEntry> inputEntries = PostUtils.transformToWork(googleService.getPostEntries());
 		msg.addAll(googleService.getMessage());
 
 		if (inputEntries != null && !inputEntries.isEmpty()) {
@@ -63,7 +64,7 @@ public class RussianPostClient {
 				// }
 
 				// send e-mail
-				EmailSender.sendEmail(outputEntries, msg);
+				EmailSender.sendEmail(inputEntries, outputEntries, msg);
 			}
 		}
 

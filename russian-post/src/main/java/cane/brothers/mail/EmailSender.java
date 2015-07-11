@@ -16,6 +16,7 @@ import cane.brothers.russianpost.client.data.DelayedPostEntry;
 import cane.brothers.russianpost.client.data.InvalidPostEntry;
 import cane.brothers.russianpost.client.data.OldPostEntry;
 import cane.brothers.russianpost.client.data.PostEntry;
+import cane.brothers.russianpost.client.data.TreatmentPostEntry;
 import cane.brothers.russianpost.config.Config;
 import cane.brothers.russianpost.utils.PostUtils;
 
@@ -24,7 +25,8 @@ public class EmailSender {
 	private static final Logger log = LoggerFactory
 			.getLogger(EmailSender.class);
 
-	public static boolean sendEmail(Set<PostEntry> output, List<String> messages) {
+	public static boolean sendEmail(Set<? extends PostEntry> input,
+			Set<PostEntry> output, List<String> messages) {
 		// try {
 		// Thread t = new Thread(new EmailRunnable());
 		// t.start();
@@ -48,14 +50,14 @@ public class EmailSender {
 		// add body text
 		StringBuilder bodyText = new StringBuilder();
 		if (amount > 0) {
-			
-			for(String msg: messages) {
+
+			for (String msg : messages) {
 				bodyText.append(msg).append("\r\n");
 			}
-			
+
 			bodyText.append(
-					"Возможны проблемы со следующими почтовыми отправлениями: ")
-					.append("\r\n").append("\r\n");
+					"3. Возможны проблемы со следующими почтовыми отправлениями: ")
+					.append("\r\n");
 			for (PostEntry postEntry : output) {
 				if ((postEntry instanceof DelayedPostEntry)
 						|| (postEntry instanceof InvalidPostEntry)) {
@@ -68,8 +70,21 @@ public class EmailSender {
 
 		bodyText.append("\r\n");
 
+		if (input != null && input.size() > 0) {
+			bodyText.append("4. Обработанные баркоды: ").append("\r\n");
+			for (PostEntry postEntry : input) {
+				if (postEntry instanceof TreatmentPostEntry) {
+					TreatmentPostEntry tpe = (TreatmentPostEntry) postEntry;
+					if (tpe.isTreated()) {
+						bodyText.append(postEntry.getBarcode()).append("\r\n");
+					}
+				}
+			}
+			bodyText.append("\r\n");
+		}
+
 		if (old > 0) {
-			bodyText.append("\r\n").append("Под удаление: ").append(old)
+			bodyText.append("\r\n").append("5. Под удаление: ").append(old)
 					.append(" посылок:").append("\r\n").append("\r\n");
 			for (PostEntry postEntry : output) {
 				if (postEntry instanceof OldPostEntry) {

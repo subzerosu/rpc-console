@@ -22,6 +22,7 @@ import cane.brothers.russianpost.client.data.DelayedPostEntry;
 import cane.brothers.russianpost.client.data.InvalidPostEntry;
 import cane.brothers.russianpost.client.data.OldPostEntry;
 import cane.brothers.russianpost.client.data.PostEntry;
+import cane.brothers.russianpost.client.data.TreatmentPostEntry;
 import cane.brothers.russianpost.config.Config;
 
 import com.google.gdata.data.spreadsheet.ListEntry;
@@ -425,6 +426,8 @@ public class PostUtils {
 			String date = row.getCustomElements().getValue("date");
 
 			if (barcode != null && !barcode.isEmpty()) {
+				//TreatmentPostEntry pe = new TreatmentPostEntry(new PostEntry(barcode, article, date));
+				//barcodes.add( new PostEntry(null));
 				PostEntry pe = new PostEntry(barcode, article, date);
 				if(!barcodes.add(pe)) {
 					doubledBarcodes.add(new InvalidPostEntry(pe, "дублирующая запись"));
@@ -435,8 +438,18 @@ public class PostUtils {
 			}
 		}
 		
-		messages.add("Дублей " + doubledBarcodes.size());
+		messages.add(" В исходных данных дублей: " + doubledBarcodes.size());
 
 		return barcodes;
+	}
+	
+	public static Set<TreatmentPostEntry> transformToWork(Set<? extends PostEntry> barcodes) {
+		Set<TreatmentPostEntry> treateBarcodes = new TreeSet<TreatmentPostEntry>();
+		
+		for(PostEntry pe : barcodes) {
+			treateBarcodes.add( new TreatmentPostEntry(pe));
+		}
+		
+		return treateBarcodes;
 	}
 }

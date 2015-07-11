@@ -7,7 +7,19 @@ package cane.brothers.russianpost.client.data;
  */
 public class PostEntry implements Comparable<PostEntry> {
 
+	
 	/**
+	 * Constructor
+	 * 
+	 * @param postEtrty not null post etrty
+	 */
+	public PostEntry(PostEntry postEtrty) {
+		this(postEtrty.getBarcode(), postEtrty.getArticle(), postEtrty.getArticle());
+	}
+	
+	/**
+	 * Constructor
+	 * 
 	 * @param barcode
 	 *            номер почтового отправления
 	 * @param article
