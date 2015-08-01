@@ -1,24 +1,32 @@
 package cane.brothers.russianpost.client.data;
 
+/**
+ * Простой класс описывающий почтовое отправление которое было обработано, т.е.
+ * история запросов была получена.
+ * 
+ * @author cane
+ */
 public class TreatmentPostEntry extends PostEntry {
 
-
 	private boolean isTreated;
-	
+
 	/**
 	 * Constructor
 	 * 
-	 * @param post post entry
+	 * @param post
+	 *            post entry
 	 */
 	public TreatmentPostEntry(PostEntry post) {
 		this(post, false);
 	}
-	
+
 	/**
 	 * Constructor
 	 * 
-	 * @param post post entry
-	 * @param treated is treaded flag
+	 * @param post
+	 *            post entry
+	 * @param treated
+	 *            is treaded flag
 	 */
 	public TreatmentPostEntry(PostEntry post, boolean treated) {
 		super(post);
@@ -32,12 +40,12 @@ public class TreatmentPostEntry extends PostEntry {
 	public void setTreated(boolean isTreated) {
 		this.isTreated = isTreated;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("ПО ").append(getBarcode()).append("; номер заказа: ")
-				.append(getArticle()).append("; обработано: ").append(isTreated);
+		builder.append("ПО ").append(getBarcode()).append("; номер заказа: ").append(getArticle())
+				.append("; обработано: ").append(isTreated);
 		return builder.toString();
 	}
 

@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import cane.brothers.russianpost.client.data.UndeliveredPostEntry;
 import cane.brothers.russianpost.client.data.InvalidPostEntry;
+import cane.brothers.russianpost.client.data.InvalidReasons;
 import cane.brothers.russianpost.client.data.OldPostEntry;
 import cane.brothers.russianpost.client.data.PostEntry;
 import cane.brothers.russianpost.client.data.TreatmentPostEntry;
@@ -175,7 +176,7 @@ public class PostUtils {
 		if (operHistoryList.isEmpty()) {
 			if (mailing != null) {
 				log.error("нет истории запросов по: " + mailing.getBarcode());
-				return new InvalidPostEntry(mailing, "история запросов пуста");
+				return new InvalidPostEntry(mailing, InvalidReasons.EMPTY);
 			}
 		}
 
@@ -199,35 +200,18 @@ public class PostUtils {
 			OperationParameters operParams = operRecord
 					.getOperationParameters();
 
-			// get type
+			// get type and attribute
 			Rtm02Parameter operType = operParams.getOperType();
-//			if (log.isDebugEnabled()) {
-//				log.debug(" Тип операции: " + operType.getName());
-//			}
-
-			// get attributes
 			Rtm02Parameter operAttr = operParams.getOperAttr();
-//			if (log.isDebugEnabled()) {
-//				log.debug(" Атрибут операции: " + operAttr.getName());
-//			}
 
 			// get date
 			XMLGregorianCalendar calendar = operParams.getOperDate();
 			Date date = calendar.toGregorianCalendar().getTime();
-//			if (log.isDebugEnabled()) {
-//				log.debug(" Дата операции: {}", date);
-//			}
-
-//			if (log.isDebugEnabled()) {
-//				log.debug(" " + mailing.getBarcode() + ": [Type(" + operType.getId()
-//						+ "): " + operType.getName() + "\t Attr("
-//						+ operAttr.getId() + "): " + operAttr.getName() + "]");
-//			}
 			
 			if (log.isDebugEnabled()) {
 				log.debug(" " + mailing + ": [" + DateUtils.getDateTime(date)
-						+ "] (" + operType.getId() + ") " + operType.getName()
-						+ "\t(" + operAttr.getId() + ")" + operAttr.getName());
+						+ "] Type(" + operType.getId() + ") " + operType.getName()
+						+ "\t Attr(" + operAttr.getId() + ")" + operAttr.getName());
 			}
 
 			// Проверяем была ли посылка доставленна в почтовое отделение
@@ -260,15 +244,22 @@ public class PostUtils {
 				if (log.isDebugEnabled()) {
 					log.debug(" У посылки истек срок хранения");
 				}
-				return null;
+				return new InvalidPostEntry(mailing, InvalidReasons.EXPIRED);
 			}
 		}
 
 		PostEntry delayedPostEntry = null;
+		
 		// если доставили в отделение, но не вручили
 		if (isDepDelivered) {
 			delayedPostEntry = verifyDeliveryDelay(mailing, depDeliveredDate, depDeliveryAddress);
 		}
+		
+		// проверяем последнюю запись в истории отправлени, если посылка точно не зависла в почтовом отделении
+		if(delayedPostEntry != null) {
+			// TODO
+		}
+		
 		return delayedPostEntry;
 	}
 
@@ -401,7 +392,7 @@ public class PostUtils {
 				//barcodes.add( new PostEntry(null));
 				PostEntry pe = new PostEntry(barcode, article, date);
 				if(!barcodes.add(pe)) {
-					doubledBarcodes.add(new InvalidPostEntry(pe, "дублирующая запись"));
+					doubledBarcodes.add(new InvalidPostEntry(pe, InvalidReasons.DUPLICATE));
 					log.error("баркод " + barcode + " в наборе уже существует.");	
 				}
 			} else {
@@ -424,6 +415,14 @@ public class PostUtils {
 		return treateBarcodes;
 	}
 	
+	/**
+	 * Проверяем было ли вручена посылка клиенту, доставленная в почтовое отделени.
+	 * 
+	 * @param mailing
+	 * @param depDeliveredDate
+	 * @param depDeliveryAddress
+	 * @return
+	 */
 	private static UndeliveredPostEntry verifyDeliveryDelay(PostEntry mailing, Date depDeliveredDate, String depDeliveryAddress) {
 		Calendar startControlCalendar = Calendar.getInstance();
 		startControlCalendar.setTime(depDeliveredDate);
@@ -456,8 +455,7 @@ public class PostUtils {
 			}
 
 			if (delay <= Config.getDeliveryDelay()) {
-				return new UndeliveredPostEntry(mailing.getBarcode(),
-						mailing.getArticle(), delay, depDeliveryAddress);
+				return new UndeliveredPostEntry(mailing, delay, depDeliveryAddress);
 			} else {
 					log.warn(" Срок хранения уже истек");
 			}

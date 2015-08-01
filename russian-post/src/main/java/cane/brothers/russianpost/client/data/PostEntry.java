@@ -4,9 +4,13 @@ package cane.brothers.russianpost.client.data;
  * Простой класс описывающий почтовое отправление. <br />
  * Все ПО сортируются по номеру заказа.
  *
+ * @author cane
  */
 public class PostEntry implements Comparable<PostEntry> {
 
+	protected String barcode;
+	protected String article;
+	protected String date;
 	
 	/**
 	 * default constructor
@@ -18,10 +22,10 @@ public class PostEntry implements Comparable<PostEntry> {
 	/**
 	 * Copy constructor
 	 * 
-	 * @param postEtrty not null post enrty
+	 * @param postEtrty not null post entry
 	 */
 	public PostEntry(PostEntry postEtrty) {
-		this(postEtrty.getBarcode(), postEtrty.getArticle(), postEtrty.getArticle());
+		this(postEtrty.getBarcode(), postEtrty.getArticle(), postEtrty.getDate());
 	}
 	
 	/**
@@ -41,9 +45,6 @@ public class PostEntry implements Comparable<PostEntry> {
 		this.date = date;
 	}
 
-	protected String barcode;
-	protected String article;
-	protected String date;
 
 	public String getBarcode() {
 		return barcode;

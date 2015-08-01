@@ -3,20 +3,21 @@ package cane.brothers.russianpost.client.data;
 /**
  * Простой класс описывающий почтовое отправление поступившее в почтовое
  * отделение клиента, "зависшее" там и не врученное клиенту.
+ * 
+ * @author cane
  */
 public class UndeliveredPostEntry extends PostEntry {
 
 	/**
-	 * Constructor
+	 * Constructor 
 	 * 
-	 * @param barcode
-	 * @param article
-	 * @param delay
-	 * @param address
+	 * @param entry почтовое отправление
+	 * @param delay задержка 
+	 * @param address адрес почтового отделения
 	 */
-	public UndeliveredPostEntry(String barcode, String article, int delay,
+	public UndeliveredPostEntry(PostEntry entry, int delay,
 			String address) {
-		super(barcode, article, null);
+		super(entry);
 		this.delay = delay;
 		this.postOfficeAddress = address;
 	}
