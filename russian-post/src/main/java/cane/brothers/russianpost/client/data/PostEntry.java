@@ -11,6 +11,7 @@ public class PostEntry implements Comparable<PostEntry> {
 	protected String barcode;
 	protected String article;
 	protected String date;
+	protected boolean needAttetion = false;
 	
 	/**
 	 * default constructor
@@ -25,7 +26,16 @@ public class PostEntry implements Comparable<PostEntry> {
 	 * @param postEtrty not null post entry
 	 */
 	public PostEntry(PostEntry postEtrty) {
-		this(postEtrty.getBarcode(), postEtrty.getArticle(), postEtrty.getDate());
+		this(postEtrty.getBarcode(), postEtrty.getArticle(), postEtrty.getDate(), postEtrty.isNeedAttetion());
+	}
+	
+	
+	/**
+	 * @param postEtrty
+	 * @param isNeedAttetion
+	 */
+	public PostEntry(PostEntry postEtrty, boolean isNeedAttetion) {
+		this(postEtrty.getBarcode(), postEtrty.getArticle(), postEtrty.getDate(), isNeedAttetion);
 	}
 	
 	/**
@@ -39,10 +49,21 @@ public class PostEntry implements Comparable<PostEntry> {
 	 *            Дата добавления
 	 */
 	public PostEntry(String barcode, String article, String date) {
+		this(barcode, article, date, false);
+	}
+	
+	/**
+	 * @param barcode
+	 * @param article
+	 * @param date
+	 * @param needAttetion
+	 */
+	public PostEntry(String barcode, String article, String date, boolean needAttetion) {
 		super();
 		this.barcode = barcode;
 		this.article = article;
 		this.date = date;
+		this.needAttetion = needAttetion;
 	}
 
 
@@ -70,6 +91,14 @@ public class PostEntry implements Comparable<PostEntry> {
 		this.date = date;
 	}
 
+	public boolean isNeedAttetion() {
+		return needAttetion;
+	}
+
+	public void setNeedAttetion(boolean needAttetion) {
+		this.needAttetion = needAttetion;
+	}
+
 	@Override
 	public int compareTo(PostEntry o) {
 		if (o != null && o.getArticle() != null) {
@@ -82,6 +111,9 @@ public class PostEntry implements Comparable<PostEntry> {
 
 	@Override
 	public String toString() {
-		return "PostEntry[" + barcode + "]";
+		StringBuilder builder = new StringBuilder();
+		builder.append("ПО ").append(getBarcode()).append("; номер заказа: ")
+				.append(getArticle());
+		return builder.toString();
 	}
 }

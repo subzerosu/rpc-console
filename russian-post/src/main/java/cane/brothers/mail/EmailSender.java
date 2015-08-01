@@ -59,8 +59,7 @@ public class EmailSender {
 					"3. Возможны проблемы со следующими почтовыми отправлениями: ")
 					.append("\r\n");
 			for (PostEntry postEntry : output) {
-				if ((postEntry instanceof UndeliveredPostEntry)
-						|| (postEntry instanceof InvalidPostEntry)) {
+				if (postEntry.isNeedAttetion()) {
 					bodyText.append(postEntry.toString()).append("\r\n");
 				}
 			}

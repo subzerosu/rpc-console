@@ -8,6 +8,9 @@ package cane.brothers.russianpost.client.data;
  */
 public class UndeliveredPostEntry extends PostEntry {
 
+	protected int delay;
+	protected String postOfficeAddress;
+	
 	/**
 	 * Constructor 
 	 * 
@@ -17,13 +20,22 @@ public class UndeliveredPostEntry extends PostEntry {
 	 */
 	public UndeliveredPostEntry(PostEntry entry, int delay,
 			String address) {
-		super(entry);
+		super(entry, true);
 		this.delay = delay;
 		this.postOfficeAddress = address;
 	}
+	
+	/**
+	 * Copy Constructor
+	 * 
+	 * @param entry is undelivered post entry
+	 */
+	public UndeliveredPostEntry(UndeliveredPostEntry entry) {
+		super(entry, true);
+		this.delay = entry.getDelay();
+		this.postOfficeAddress = entry.getPostOfficeAddress();
+	}
 
-	private int delay;
-	private String postOfficeAddress;
 
 	public int getDelay() {
 		return delay;
@@ -44,7 +56,7 @@ public class UndeliveredPostEntry extends PostEntry {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("ПО ").append(getBarcode()).append("; номер заказа: ")
+		builder.append("Неврученное ПО ").append(getBarcode()).append("; номер заказа: ")
 				.append(getArticle()).append("; задержка ").append(delay)
 				.append(" дней по адресу: ").append(postOfficeAddress)
 				.append("");

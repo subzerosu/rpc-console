@@ -23,15 +23,15 @@ public class InvalidPostEntry extends PostEntry {
 	 * @param reason
 	 */
 	public InvalidPostEntry(PostEntry post, InvalidReasons reason) {
-		super(post);
+		super(post, true);
 		this.reason = reason;
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("ПО ").append(getBarcode()).append("; номер заказа: ")
-				.append(getArticle()).append("; проблемы: ").append(reason);
+		builder.append("Проблемное ПО ").append(getBarcode()).append("; номер заказа: ")
+				.append(getArticle()).append("; по причине: ").append(reason);
 		return builder.toString();
 	}
 

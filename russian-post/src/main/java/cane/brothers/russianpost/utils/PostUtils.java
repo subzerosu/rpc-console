@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cane.brothers.russianpost.client.data.UndeliveredPostEntry;
+import cane.brothers.russianpost.client.data.DelayedPostEntry;
 import cane.brothers.russianpost.client.data.InvalidPostEntry;
 import cane.brothers.russianpost.client.data.InvalidReasons;
 import cane.brothers.russianpost.client.data.OldPostEntry;
@@ -64,11 +65,6 @@ public class PostUtils {
 			XMLGregorianCalendar calendar = operParams.getOperDate();
 			Date date = calendar.toGregorianCalendar().getTime();
 
-//			if (log.isDebugEnabled()) {
-//				log.debug(mailing.getBarcode() + ": [Type(" + operType.getId()
-//						+ "): " + operType.getName() + "\t Attr("
-//						+ operAttr.getId() + "): " + operAttr.getName() + "]");
-//			}
 			if (log.isDebugEnabled()) {
 				log.debug(" " + mailing + ": [" + DateUtils.getDateTime(date)
 						+ "] (" + operType.getId() + ") " + operType.getName()
@@ -255,15 +251,16 @@ public class PostUtils {
 			delayedPostEntry = verifyDeliveryDelay(mailing, depDeliveredDate, depDeliveryAddress);
 		}
 		
-		// проверяем последнюю запись в истории отправлени, если посылка точно не зависла в почтовом отделении
-		if(delayedPostEntry != null) {
-			// TODO
+		// проверяем последнюю существующую запись в истории отправлени, 
+		// если посылка точно не зависла в почтовом отделении
+		if(delayedPostEntry == null && lastOperRecord != null) {
+			delayedPostEntry = verifyOperationDelay(mailing, lastOperRecord);
 		}
 		
 		return delayedPostEntry;
 	}
 
-	
+
 	public static String getDestinationAddress(OperationHistoryRecord operRecord) {
 		StringBuilder address = new StringBuilder("");
 
@@ -448,18 +445,73 @@ public class PostUtils {
 		int delay = DateUtils.getDayDifference(depDeliveredDate,
 				Config.getDate());
 
+		// если задержка превышает контрольную дату вручения
 		if (Config.getPostDelay() <= delay) {
 			if (log.isDebugEnabled()) {
 				log.debug(" От даты поступления посылки в почтовое отделение прошло уже "
 						+ delay + " дней");
 			}
 
+			// но не позднее контрольной даты хранения
 			if (delay <= Config.getDeliveryDelay()) {
 				return new UndeliveredPostEntry(mailing, delay, depDeliveryAddress);
 			} else {
 					log.warn(" Срок хранения уже истек");
 			}
 		}
+		return null;
+	}
+	
+	private static PostEntry verifyOperationDelay(PostEntry mailing, OperationHistoryRecord lastOperRecord) {
+		// get operation parameters
+		OperationParameters operParams = lastOperRecord
+				.getOperationParameters();
+		Rtm02Parameter operType = operParams.getOperType();
+		Rtm02Parameter operAttr = operParams.getOperAttr();
+
+		// get date
+		XMLGregorianCalendar calendar = operParams.getOperDate();
+		Date currentDate = calendar.toGregorianCalendar().getTime();
+		
+		if (log.isDebugEnabled()) {
+			log.debug(" " + mailing + ": [" + DateUtils.getDateTime(currentDate)
+					+ "] Type(" + operType.getId() + ") " + operType.getName()
+					+ "\t Attr(" + operAttr.getId() + ")" + operAttr.getName());
+		}
+		
+		// задаем дату, после которой операция считается зависшей
+		Calendar сontrolCalendar = Calendar.getInstance();
+		сontrolCalendar.setTime(currentDate);
+		сontrolCalendar.add(Calendar.DAY_OF_MONTH,
+				Config.getOperationDelay());
+
+		if (log.isDebugEnabled()) {
+			log.debug(" Контрольная дата по операции: "
+					+ DateUtils.getLongDate(сontrolCalendar.getTime()));
+		}
+
+
+		// задержка операции
+		int operationDelay = DateUtils.getDayDifference(currentDate,
+				Config.getDate());
+		String operationAddress = null;
+		
+		// превышает максимальную задержку выполнения операции
+		if (operationDelay >= Config.getOperationDelay()) {
+			
+			// но не позднее контрольной даты хранения
+			if (operationDelay <= Config.getDeliveryDelay()) {
+				operationAddress = getDestinationAddress(lastOperRecord);
+				
+				// посылка зависла по операции
+				UndeliveredPostEntry undelPostEntry = new UndeliveredPostEntry(mailing, operationDelay, operationAddress);
+				return new DelayedPostEntry(undelPostEntry, operType, operAttr);
+				
+			} else {
+					log.warn(" Срок хранения уже истек");
+			}
+		} 
+		
 		return null;
 	}
 

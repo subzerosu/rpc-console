@@ -84,7 +84,8 @@ public class PostInterrogator implements MessageProvider {
 			}
 		} catch (WebServiceException ex) {
 			messages.add("2. Проблемы с доступом к серверу Почты России");
-			log.error("Проблемы с доступом к сервису почтовых отправлений", ex);
+			log.error("Проблемы с доступом к сервису почтовых отправлений.", ex.getMessage());
+			log.info("Попробуйте еще раз позднее.");
 			return false;
 		}
 

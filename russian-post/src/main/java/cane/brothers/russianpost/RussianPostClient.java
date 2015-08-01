@@ -24,22 +24,17 @@ public class RussianPostClient {
 		log.info("стартовали");
 
 		List<String> msg = new ArrayList<String>();
-		// read input
-		// InputData input = new InputData();
+
+		// считываем все баркоды с google-таблицы
 		SpreadsheetInterrogator googleService = new SpreadsheetInterrogator();
-		Set<? extends PostEntry> inputEntries = PostUtils.transformToWork(googleService.getPostEntries());
 		msg.addAll(googleService.getMessage());
+		Set<? extends PostEntry> inputEntries = PostUtils.transformToWork(googleService.getPostEntries());
 
 		if (inputEntries != null && !inputEntries.isEmpty()) {
 			// set up output
 			Set<PostEntry> outputEntries = new TreeSet<PostEntry>();
 
-			// log.info(String.format(
-			// "Считано: %1$d баркодов, ошибок %2$d, дублей %3$d",
-			// input.getBarcodeAmount(), input.getErrorAmount(),
-			// input.getDuplBarcodeAmount()));
-
-			// main handling
+			// main post handling
 			PostInterrogator postService = new PostInterrogator(inputEntries,
 					outputEntries);
 			
@@ -49,23 +44,15 @@ public class RussianPostClient {
 				postService.checkHistory();
 				msg.addAll(postService.getMessage());
 
+				// TODO в отдельном потоке
 				// очищаем файл баркодов до
 				if (Config.doCleanUp()) {
 					googleService.removeOldPostEntries(outputEntries);
 				}
-
-				// добавляем в выходной набор повторяющиеся записи
-				// if (input.getDuplBarcodeAmount() > 0) {
-				// if (log.isDebugEnabled()) {
-				// log.debug("Добавляю дубли в выходной набор. {} записей",
-				// input.getDuplBarcodeAmount());
-				// }
-				// outputEntries.addAll(input.getDuplEntries());
-				// }
-
-				// send e-mail
-				EmailSender.sendEmail(inputEntries, outputEntries, msg);
 			}
+			
+			// send e-mail
+			EmailSender.sendEmail(inputEntries, outputEntries, msg);
 		}
 
 		log.info("работу закончили");
