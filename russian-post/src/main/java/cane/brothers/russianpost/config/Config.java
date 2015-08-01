@@ -25,6 +25,7 @@ public class Config {
 	private static String postPassword;
 	private static int postDelay;
 	private static int deliveryDelay;
+	private static int operationDelay;
 
 	private static String charset;
 	private static boolean cleanUp;
@@ -63,6 +64,8 @@ public class Config {
 			postDelay = Integer.valueOf(prop.getProperty("delay", "5"));
 			deliveryDelay = Integer.valueOf(prop.getProperty("deliveryDelay",
 					"35"));
+			operationDelay = Integer.valueOf(prop.getProperty("operationDelay",
+					"10")); 
 
 			charset = prop.getProperty("charset", "utf-8");
 			cleanUp = Boolean.parseBoolean(prop.getProperty("cleanup", "true"));
@@ -101,6 +104,11 @@ public class Config {
 	public static int getDeliveryDelay() {
 		return deliveryDelay;
 	}
+
+	public static int getOperationDelay() {
+		return operationDelay;
+	}
+	
 
 	public static Date getDate() {
 		return time;
