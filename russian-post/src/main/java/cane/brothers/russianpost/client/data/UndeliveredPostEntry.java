@@ -1,10 +1,10 @@
 package cane.brothers.russianpost.client.data;
 
 /**
- * Простой POJO класс описывающий почтовое отправление поступившее в почтовое
- * отделение клиента и "зависшее" там.
+ * Простой класс описывающий почтовое отправление поступившее в почтовое
+ * отделение клиента, "зависшее" там и не врученное клиенту.
  */
-public class DelayedPostEntry extends PostEntry {
+public class UndeliveredPostEntry extends PostEntry {
 
 	/**
 	 * Constructor
@@ -14,7 +14,7 @@ public class DelayedPostEntry extends PostEntry {
 	 * @param delay
 	 * @param address
 	 */
-	public DelayedPostEntry(String barcode, String article, int delay,
+	public UndeliveredPostEntry(String barcode, String article, int delay,
 			String address) {
 		super(barcode, article, null);
 		this.delay = delay;

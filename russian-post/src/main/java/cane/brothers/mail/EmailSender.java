@@ -12,7 +12,7 @@ import org.codemonkey.simplejavamail.TransportStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cane.brothers.russianpost.client.data.DelayedPostEntry;
+import cane.brothers.russianpost.client.data.UndeliveredPostEntry;
 import cane.brothers.russianpost.client.data.InvalidPostEntry;
 import cane.brothers.russianpost.client.data.OldPostEntry;
 import cane.brothers.russianpost.client.data.PostEntry;
@@ -59,7 +59,7 @@ public class EmailSender {
 					"3. Возможны проблемы со следующими почтовыми отправлениями: ")
 					.append("\r\n");
 			for (PostEntry postEntry : output) {
-				if ((postEntry instanceof DelayedPostEntry)
+				if ((postEntry instanceof UndeliveredPostEntry)
 						|| (postEntry instanceof InvalidPostEntry)) {
 					bodyText.append(postEntry.toString()).append("\r\n");
 				}
