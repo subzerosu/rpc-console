@@ -24,8 +24,6 @@ public class RussianPostClient {
 	public static void main(String[] args) {
 		log.info("стартовали");
 
-		List<String> msg = new ArrayList<String>();
-
 		// считываем все баркоды с google-таблицы
 		SpreadsheetInterrogator googleService = new SpreadsheetInterrogator(MessageContext.getContext());
 		Set<? extends PostEntry> inputEntries = PostUtils.transformToWork(googleService.getPostEntries());
@@ -61,15 +59,4 @@ public class RussianPostClient {
 
 		log.info("работу закончили");
 	}
-
-	// private static void cleanup(InputData input, List<String> oldBarcodes) {
-	// log.info("Делаю очистку старых отправлений...");
-	//
-	// if (oldBarcodes != null && !oldBarcodes.isEmpty()) {
-	// input.cleanupPostEntries(oldBarcodes);
-	// } else {
-	// log.info("Нечего чистить. Cтарых отправлений нет.");
-	// }
-	//
-	// }
 }
