@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -12,13 +11,6 @@ import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import cane.brothers.google.utils.GSUtils;
-import cane.brothers.russianpost.MessageProvider;
-import cane.brothers.russianpost.client.data.OldPostEntry;
-import cane.brothers.russianpost.client.data.PostEntry;
-import cane.brothers.russianpost.config.Config;
-import cane.brothers.russianpost.utils.PostUtils;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
@@ -35,7 +27,14 @@ import com.google.gdata.data.spreadsheet.ListEntry;
 import com.google.gdata.data.spreadsheet.SpreadsheetEntry;
 import com.google.gdata.util.ServiceException;
 
-public class SpreadsheetInterrogator implements MessageProvider {
+import cane.brothers.google.utils.GSUtils;
+import cane.brothers.mail.MessageContext;
+import cane.brothers.russianpost.client.data.OldPostEntry;
+import cane.brothers.russianpost.client.data.PostEntry;
+import cane.brothers.russianpost.config.Config;
+import cane.brothers.russianpost.utils.PostUtils;
+
+public class SpreadsheetInterrogator {
 
 	private static final Logger log = LoggerFactory
 			.getLogger(SpreadsheetInterrogator.class);
@@ -63,7 +62,11 @@ public class SpreadsheetInterrogator implements MessageProvider {
 
 	private static SpreadsheetEntry table = null;
 	
-	private List<String> messages = new ArrayList<String>();
+	private MessageContext messages = null;
+	
+	public SpreadsheetInterrogator(MessageContext context) {
+		messages = context;
+	}
 
 	private static Credential authorize() throws Exception {
 
@@ -124,6 +127,10 @@ public class SpreadsheetInterrogator implements MessageProvider {
 		if (googleService == null) {
 
 			try {
+				if (log.isInfoEnabled()) {
+					log.info("Подключаюсь к Google сервису...");
+				}
+				
 				// authorization
 				Credential credential = getCredetial();
 				if (credential != null) {
@@ -132,8 +139,8 @@ public class SpreadsheetInterrogator implements MessageProvider {
 					// log.debug("Token был обновлен");
 					// }
 					// }
-					if (log.isDebugEnabled()) {
-						log.debug("Авторизация в Google есть");
+					if (log.isInfoEnabled()) {
+						log.info("Авторизация в Google есть");
 					}
 
 					// connect to google service with credential
@@ -147,6 +154,7 @@ public class SpreadsheetInterrogator implements MessageProvider {
 
 				else {
 					log.error("Нет авторизации в Google");
+					messages.addErrorMessage("Нет авторизации в Google");
 				}
 
 			} catch (Exception ex) {
@@ -187,7 +195,7 @@ public class SpreadsheetInterrogator implements MessageProvider {
 				getTable());
 		
 		int rows = (inputRowList == null ? 0: inputRowList.size());
-		messages.add("1. В таблице баркодов " + rows + " строк.");
+		messages.addMessage1("В таблице баркодов " + rows + " строк.");
 
 		if (inputRowList != null) {
 			if (log.isDebugEnabled()) {
@@ -198,7 +206,7 @@ public class SpreadsheetInterrogator implements MessageProvider {
 			log.warn("Нет исходных данных");
 		}
 
-		messages.add(" Уникальных строк с баркодами: " + barcodes.size());
+		messages.addMessage1(" Уникальных строк с баркодами: " + barcodes.size());
 		
 		// read barcodes spreadsheet
 		return barcodes;
@@ -279,12 +287,6 @@ public class SpreadsheetInterrogator implements MessageProvider {
 		}
 
 		return result;
-	}
-
-	@Override
-	public List<String> getMessage() {
-		messages.add("\r\n");
-		return messages;
 	}
 
 }

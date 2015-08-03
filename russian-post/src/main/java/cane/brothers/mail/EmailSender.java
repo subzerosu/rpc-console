@@ -1,8 +1,5 @@
 package cane.brothers.mail;
 
-import java.util.List;
-import java.util.Set;
-
 import javax.mail.Message.RecipientType;
 
 import org.codemonkey.simplejavamail.Email;
@@ -12,21 +9,15 @@ import org.codemonkey.simplejavamail.TransportStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cane.brothers.russianpost.client.data.UndeliveredPostEntry;
-import cane.brothers.russianpost.client.data.InvalidPostEntry;
-import cane.brothers.russianpost.client.data.OldPostEntry;
-import cane.brothers.russianpost.client.data.PostEntry;
-import cane.brothers.russianpost.client.data.TreatmentPostEntry;
 import cane.brothers.russianpost.config.Config;
-import cane.brothers.russianpost.utils.PostUtils;
+import cane.brothers.russianpost.utils.MessageBuilder;
 
 public class EmailSender {
 
 	private static final Logger log = LoggerFactory
 			.getLogger(EmailSender.class);
 
-	public static boolean sendEmail(Set<? extends PostEntry> input,
-			Set<PostEntry> output, List<String> messages) {
+	public static boolean sendEmail(MessageBuilder messages) {
 		// try {
 		// Thread t = new Thread(new EmailRunnable());
 		// t.start();
@@ -37,64 +28,13 @@ public class EmailSender {
 			log.debug("Подготовка к отправке письма...");
 		}
 
-		int amount = PostUtils.getDelayed(output)
-				+ PostUtils.getInvalid(output);
-
-		int old = PostUtils.getOld(output);
-
 		final Email email = new Email();
 		email.setFromAddress(Config.getMailUser(), Config.getMailFrom());
 		email.addRecipient("Subscriber", Config.getMailTo(), RecipientType.TO);
-		email.setSubject(Config.getMailSubjecy() + ": " + amount);
+		email.setSubject(Config.getMailSubjecy() + ": " + messages.getAmountAttended());
 
 		// add body text
-		StringBuilder bodyText = new StringBuilder();
-		if (amount > 0) {
-
-			for (String msg : messages) {
-				bodyText.append(msg).append("\r\n");
-			}
-
-			bodyText.append(
-					"3. Возможны проблемы со следующими почтовыми отправлениями: ")
-					.append("\r\n");
-			for (PostEntry postEntry : output) {
-				if (postEntry.isNeedAttetion()) {
-					bodyText.append(postEntry.toString()).append("\r\n");
-				}
-			}
-		} else {
-			bodyText.append("зависших почтовых отправлений нет");
-		}
-
-		bodyText.append("\r\n");
-
-		if (input != null && input.size() > 0) {
-			bodyText.append("4. Обработанные баркоды: ").append("\r\n");
-			for (PostEntry postEntry : input) {
-				if (postEntry instanceof TreatmentPostEntry) {
-					TreatmentPostEntry tpe = (TreatmentPostEntry) postEntry;
-					if (tpe.isTreated()) {
-						bodyText.append(postEntry.getBarcode()).append("\r\n");
-					}
-				}
-			}
-			bodyText.append("\r\n");
-		}
-
-		if (old > 0) {
-			bodyText.append("\r\n").append("5. Под удаление: ").append(old)
-					.append(" посылок:").append("\r\n").append("\r\n");
-			for (PostEntry postEntry : output) {
-				if (postEntry instanceof OldPostEntry) {
-					bodyText.append(postEntry.toString()).append("\r\n");
-				}
-			}
-		} else {
-			bodyText.append("удалять нечего");
-		}
-
-		email.setText(bodyText.toString());
+		email.setText(messages.getMessage());
 
 		log.info("Отправляем письмо на {}", Config.getMailTo());
 

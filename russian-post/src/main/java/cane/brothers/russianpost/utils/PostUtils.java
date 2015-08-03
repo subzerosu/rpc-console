@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cane.brothers.russianpost.client.data.UndeliveredPostEntry;
+import cane.brothers.mail.MessageContext;
 import cane.brothers.russianpost.client.data.DelayedPostEntry;
 import cane.brothers.russianpost.client.data.InvalidPostEntry;
 import cane.brothers.russianpost.client.data.InvalidReasons;
@@ -340,6 +341,30 @@ public class PostUtils {
 		return result;
 	}
 
+	
+	/**
+	 * @param output
+	 * @return amount of post entries which is under suspicion
+	 */
+	public static int getAttended(Set<PostEntry> output) {
+		int result = 0;
+
+		if (output != null && output.size() > 0) {
+			for (PostEntry e : output) {
+				if (e.isNeedAttetion()) {
+					result++;
+				}
+			}
+		} else {
+			if (log.isWarnEnabled()) {
+				log.warn("Выходной набор пуст или не существует.");
+			}
+		}
+
+		return result;
+	}
+	
+	
 	// возврат: истек срок хранения
 	private static boolean isComeback(Rtm02Parameter operType,
 			Rtm02Parameter operAttr) {
@@ -370,7 +395,7 @@ public class PostUtils {
 	}
 
 	// преобразуем списочные данные к набору ПО
-	public static Set<PostEntry> transformToPost(List<ListEntry> dataRows, List<String> messages) {
+	public static Set<PostEntry> transformToPost(List<ListEntry> dataRows, MessageContext messages) {
 		Set<PostEntry> barcodes = new TreeSet<PostEntry>();
 		List<InvalidPostEntry> doubledBarcodes = new ArrayList<InvalidPostEntry>(); 
 
@@ -385,8 +410,6 @@ public class PostUtils {
 			String date = row.getCustomElements().getValue("date");
 
 			if (barcode != null && !barcode.isEmpty()) {
-				//TreatmentPostEntry pe = new TreatmentPostEntry(new PostEntry(barcode, article, date));
-				//barcodes.add( new PostEntry(null));
 				PostEntry pe = new PostEntry(barcode, article, date);
 				if(!barcodes.add(pe)) {
 					doubledBarcodes.add(new InvalidPostEntry(pe, InvalidReasons.DUPLICATE));
@@ -397,7 +420,7 @@ public class PostUtils {
 			}
 		}
 		
-		messages.add(" В исходных данных дублей: " + doubledBarcodes.size());
+		messages.addMessage1(" В исходных данных дублей: " + doubledBarcodes.size());
 
 		return barcodes;
 	}

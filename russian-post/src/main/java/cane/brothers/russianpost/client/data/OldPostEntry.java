@@ -10,6 +10,8 @@ package cane.brothers.russianpost.client.data;
  * <li>Старое ПО.</li>
  * </ul>
  * 
+ * TODO copy constructor
+ * 
  * @author cane
  */
 public class OldPostEntry extends PostEntry {

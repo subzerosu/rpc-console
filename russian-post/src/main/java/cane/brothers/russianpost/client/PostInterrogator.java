@@ -1,8 +1,6 @@
 package cane.brothers.russianpost.client;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.xml.ws.WebServiceException;
@@ -18,13 +16,13 @@ import org.russianpost.operationhistory.data.OperationHistoryRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cane.brothers.russianpost.MessageProvider;
+import cane.brothers.mail.MessageContext;
 import cane.brothers.russianpost.client.data.PostEntry;
 import cane.brothers.russianpost.client.data.TreatmentPostEntry;
 import cane.brothers.russianpost.config.Config;
 import cane.brothers.russianpost.utils.PostUtils;
 
-public class PostInterrogator implements MessageProvider {
+public class PostInterrogator {
 
 	private static final Logger log = LoggerFactory
 			.getLogger(PostInterrogator.class);
@@ -38,16 +36,8 @@ public class PostInterrogator implements MessageProvider {
 	 * набор выходных записей ПО
 	 */
 	private Set<PostEntry> outputEntries = null;
-
-	/**
-	 * список баркодов с истекшим сроком, посылки по которые возвращаются, уже
-	 * вернулись или совсем древние
-	 */
-	// List<String> oldBarcodes = new ArrayList<String>();
-	//
-	// public List<String> getOldBarcodes() {
-	// return oldBarcodes;
-	// }
+	
+	private MessageContext messages = null;
 
 	/**
 	 * сервис ПО
@@ -55,23 +45,23 @@ public class PostInterrogator implements MessageProvider {
 	private OperationHistoryService service = null;
 	private AuthorizationHeader authorizationHeader = null;
 
-	private List<String> messages = new ArrayList<String>();
-
 	/**
 	 * Constructor
 	 * 
 	 * @param input
 	 * @param output
+	 * @param context
 	 */
 	public PostInterrogator(Set<? extends PostEntry> input,
-			Set<PostEntry> output) {
+			Set<PostEntry> output, MessageContext context) {
 		this.inputEntries = input;
 		this.outputEntries = output;
+		messages = context;
 	}
 
 	public boolean authorize() {
-		if (log.isDebugEnabled()) {
-			log.debug("Подключаюсь к сервису почтовых отправлений...");
+		if (log.isInfoEnabled()) {
+			log.info("Подключаюсь к сервису почтовых отправлений...");
 		}
 
 		// get service
@@ -83,7 +73,7 @@ public class PostInterrogator implements MessageProvider {
 				log.debug("Подключились");
 			}
 		} catch (WebServiceException ex) {
-			messages.add("2. Проблемы с доступом к серверу Почты России");
+			messages.addErrorMessage("Проблемы с доступом к серверу Почты России");
 			log.error("Проблемы с доступом к сервису почтовых отправлений.", ex.getMessage());
 			log.info("Попробуйте еще раз позднее.");
 			return false;
@@ -199,6 +189,8 @@ public class PostInterrogator implements MessageProvider {
 				log.error("Проблемы с языком запроса. ", le);
 			} catch (OperationHistoryFault he) {
 				c2++;
+				
+				// TODO invalid post entry
 				log.error(
 						"Проблемы с запросом истории почтового отправления. ",
 						he);
@@ -215,10 +207,10 @@ public class PostInterrogator implements MessageProvider {
 			log.debug("Набор входных данных обработали.");
 		}
 
-		messages.add("2. На сервере Почты России обработано " + c1
+		messages.addMessage2("На сервере Почты России обработано " + c1
 				+ " посылок.");
 		if (c2 > 0) {
-			messages.add(" Не удалось получить историю по  " + c2
+			messages.addMessage2("Не удалось получить историю по  " + c2
 					+ " посылкам.");
 		}
 
@@ -238,11 +230,5 @@ public class PostInterrogator implements MessageProvider {
 
 			outputEntries.addAll(oldEntries);
 		}
-	}
-
-	@Override
-	public List<String> getMessage() {
-		messages.add("\r\n");
-		return messages;
 	}
 }
