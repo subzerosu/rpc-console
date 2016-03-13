@@ -6,10 +6,10 @@ import java.util.Set;
 import javax.xml.ws.WebServiceException;
 
 import org.russianpost.operationhistory.AuthorizationFault;
-import org.russianpost.operationhistory.LanguageFault;
-import org.russianpost.operationhistory.OperationHistoryClient;
+//import org.russianpost.operationhistory.LanguageFault;
+import org.russianpost.operationhistory.OperationHistory12_Service;
 import org.russianpost.operationhistory.OperationHistoryFault;
-import org.russianpost.operationhistory.OperationHistoryService;
+import org.russianpost.operationhistory.OperationHistory12;
 import org.russianpost.operationhistory.data.AuthorizationHeader;
 import org.russianpost.operationhistory.data.OperationHistoryData;
 import org.russianpost.operationhistory.data.OperationHistoryRequest;
@@ -42,7 +42,7 @@ public class PostInterrogator {
 	/**
 	 * сервис ПО
 	 */
-	private OperationHistoryService service = null;
+	private OperationHistory12 service = null;
 	private AuthorizationHeader authorizationHeader = null;
 
 	/**
@@ -66,8 +66,8 @@ public class PostInterrogator {
 
 		// get service
 		try {
-			OperationHistoryClient client = new OperationHistoryClient();
-			service = client.getOperationHistoryService();
+			OperationHistory12_Service client = new OperationHistory12_Service();
+			service = client.getOperationHistory12Port();
 
 			if (log.isDebugEnabled()) {
 				log.debug("Подключились");
@@ -87,7 +87,7 @@ public class PostInterrogator {
 		authorizationHeader = new AuthorizationHeader();
 		authorizationHeader.setLogin(Config.getPostLogin());
 		authorizationHeader.setPassword(Config.getPostPassword());
-		authorizationHeader.setMustUnderstand(Boolean.TRUE);
+		authorizationHeader.setMustUnderstand("1");// .setMustUnderstand(Boolean.TRUE);
 
 		// get Languages
 		// LanguageData langData = service
@@ -185,9 +185,11 @@ public class PostInterrogator {
 
 			} catch (AuthorizationFault ae) {
 				log.error("Проблемы с авторизацией. ", ae);
-			} catch (LanguageFault le) {
-				log.error("Проблемы с языком запроса. ", le);
-			} catch (OperationHistoryFault he) {
+			} 
+//			catch (LanguageFault le) {
+//				log.error("Проблемы с языком запроса. ", le);
+//			} 
+			catch (OperationHistoryFault he) {
 				c2++;
 				
 				// TODO invalid post entry
