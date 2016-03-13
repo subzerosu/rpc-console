@@ -3,153 +3,162 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>cane.brothers</groupId>
-	<version>1.6</version>
+	<version>1.7</version>
 
 	<name>russian-post-client</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
+		<maven.compiler.target>1.7</maven.compiler.target>
 		<slf4j.version>1.6.1</slf4j.version>
 	</properties>
 
 	<dependencies>
-  
-	<dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>${slf4j.version}</version>
-	</dependency>
-        
-    <dependency>
-    	<groupId>org.codemonkey.simplejavamail</groupId>
-    	<artifactId>simple-java-mail</artifactId>
-    	<version>2.2</version>
-    </dependency>
-    <dependency>
-    	<groupId>com.google.gdata</groupId>
-    	<artifactId>core</artifactId>
-    	<version>1.47.1</version>
-    </dependency>
-    <dependency>
-    	<groupId>com.google.api-client</groupId>
-    	<artifactId>google-api-client</artifactId>
-    	<version>1.20.0</version>
-    </dependency>
+	
+		<!-- rp wsld -->
+		<dependency>
+			<groupId>org.russianpost</groupId>
+			<artifactId>rpc-wsld</artifactId>
+			<version>1.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.codemonkey.simplejavamail</groupId>
+			<artifactId>simple-java-mail</artifactId>
+			<version>2.2</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.google.gdata</groupId>
+			<artifactId>core</artifactId>
+			<version>1.47.1</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.google.api-client</groupId>
+			<artifactId>google-api-client</artifactId>
+			<version>1.20.0</version>
+		</dependency>
+		
 	</dependencies>
-  
-  <description>Russian post client</description>
-  <organization>
-  	<name>Cane Brothers</name>
-  </organization>
-  
-  <build>
-  	<plugins>
-      
-  		<!-- download source code in Eclipse, best practice -->
-  		<plugin>
-  			<groupId>org.apache.maven.plugins</groupId>
-  			<artifactId>maven-eclipse-plugin</artifactId>
-  			<version>2.9</version>
-  			<configuration>
-				<downloadSources>true</downloadSources>
-				<downloadJavadocs>false</downloadJavadocs>
-			</configuration>
-  		</plugin>
-  		
-  		<!-- Make this jar executable -->
-  		<plugin>
-  			<groupId>org.apache.maven.plugins</groupId>
-  			<artifactId>maven-jar-plugin</artifactId>
-  			<version>2.3.2</version>
-  			<configuration>
-				<excludes>
-					<exclude>**/log4j.properties</exclude>
-					<exclude>**/resources/*</exclude>
-				</excludes>
-				<archive>
-					<manifest>
-					 <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-						<addClasspath>true</addClasspath>
-						<mainClass>cane.brothers.russianpost.RussianPostClient</mainClass>
-						<classpathPrefix>rpc_lib/</classpathPrefix>
-					</manifest>
-					<manifestEntries>
-						<Class-Path>.</Class-Path>
-            		</manifestEntries>
-				</archive>
-			</configuration>
-  		</plugin>
-  		
-  		<!-- Copy project dependency -->
-		 	<plugin>
+
+	<description>Russian post client</description>
+	<organization>
+		<name>Cane Brothers</name>
+	</organization>
+
+	<build>
+		<plugins>
+
+			<!-- download source code in Eclipse, best practice -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>false</downloadJavadocs>
+				</configuration>
+			</plugin>
+
+			<!-- Make this jar executable -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<excludes>
+						<exclude>**/log4j.properties</exclude>
+						<exclude>**/resources/*</exclude>
+					</excludes>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addClasspath>true</addClasspath>
+							<mainClass>cane.brothers.russianpost.RussianPostClient</mainClass>
+							<classpathPrefix>rpc_lib/</classpathPrefix>
+						</manifest>
+						<manifestEntries>
+							<Class-Path>.</Class-Path>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<!-- Copy project dependency -->
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<version>2.5.1</version>
 				<executions>
-				  <execution>
-					<id>copy-dependencies</id>
-					<phase>package</phase>
-					<goals>
-						<goal>copy-dependencies</goal>
-					</goals>
-					<configuration>
-					  <!-- exclude junit, we need runtime dependency only -->
-					   <includeScope>runtime</includeScope>
-					  <outputDirectory>${project.build.directory}/rpc_lib/</outputDirectory>
-					  <overWriteReleases>false</overWriteReleases>
-                      <overWriteSnapshots>false</overWriteSnapshots>
-                      <overWriteIfNewer>true</overWriteIfNewer>
-					</configuration>
-				  </execution>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<!-- exclude junit, we need runtime dependency only -->
+							<includeScope>runtime</includeScope>
+							<outputDirectory>${project.build.directory}/rpc_lib/</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
-			
+
 			<!-- Copy project resources -->
 			<plugin>
-        		<groupId>org.apache.maven.plugins</groupId>
-        		<artifactId>maven-resources-plugin</artifactId>
-        		<version>2.7</version>
-        		<executions>
-        		  <!--  copy to src resources -->
-		          <execution>
-		            <id>copy-to-src-resources</id>
-		            <phase>process-resources</phase>
-		            <goals>
-		              <goal>copy-resources</goal>
-		            </goals>
-		            <configuration>
-		              <outputDirectory>src/main/resources/resources</outputDirectory>
-		              <resources>          
-		                <resource>
-		                  <directory>resources</directory>
-		                  <filtering>true</filtering>
-		                </resource>
-		              </resources>              
-		            </configuration>            
-		          </execution>
-		           <!--  copy all resources -->
-		          <execution>
-		            <id>copy-resources</id>
-		            <phase>process-resources</phase>
-		            <goals>
-		              <goal>copy-resources</goal>
-		            </goals>
-		            <configuration>
-		              <outputDirectory>${project.build.directory}/</outputDirectory>
-		              <resources>          
-		                <resource>
-		                  <directory>src/main/resources</directory>
-		                  <filtering>true</filtering>
-		                </resource>
-		              </resources>              
-		            </configuration>            
-		          </execution>
-		        </executions>
-      		</plugin>
-  		
-  	</plugins>
-  </build>
-  <artifactId>rpc</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.7</version>
+				<executions>
+					<!-- copy to src resources -->
+					<execution>
+						<id>copy-to-src-resources</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>src/main/resources/resources</outputDirectory>
+							<resources>
+								<resource>
+									<directory>resources</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<!-- copy all resources -->
+					<execution>
+						<id>copy-resources</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/resources</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	<artifactId>rpc</artifactId>
 </project>
