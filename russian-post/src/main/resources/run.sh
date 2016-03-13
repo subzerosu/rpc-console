@@ -2,4 +2,4 @@
 exec java \
      -d64 \
      -XstartOnFirstThread \
-     -jar rpc-1.6.jar
+     -jar rpc-1.7.jar
