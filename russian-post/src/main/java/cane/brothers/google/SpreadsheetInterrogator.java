@@ -36,257 +36,276 @@ import cane.brothers.russianpost.utils.PostUtils;
 
 public class SpreadsheetInterrogator {
 
-	private static final Logger log = LoggerFactory
-			.getLogger(SpreadsheetInterrogator.class);
+    private static final Logger log = LoggerFactory
+            .getLogger(SpreadsheetInterrogator.class);
 
-	private static final List<String> SCOPES = Arrays
-			.asList("https://spreadsheets.google.com/feeds");
+    private static final List<String> SCOPES = Arrays
+            .asList("https://spreadsheets.google.com/feeds");
 
-	private static final java.io.File DATA_STORE_DIR = new java.io.File(
-			System.getProperty("user.home"), Config.getDataStoreDir());
+    private static final java.io.File DATA_STORE_DIR = new java.io.File(
+            System.getProperty("user.home"), Config.getDataStoreDir());
 
-	private static final String CLIENT_SECRETS = Config.getClientSecrets();
+    private static final String CLIENT_SECRETS = Config.getClientSecrets();
 
-	private static FileDataStoreFactory dataStoreFactory;
+    private static FileDataStoreFactory dataStoreFactory;
 
-	private static HttpTransport httpTransport;
+    private static HttpTransport httpTransport;
 
-	private static final JsonFactory JSON_FACTORY = JacksonFactory
-			.getDefaultInstance();
+    private static final JsonFactory JSON_FACTORY = JacksonFactory
+            .getDefaultInstance();
 
-	private static GoogleClientSecrets clientSecrets;
+    private static GoogleClientSecrets clientSecrets;
 
-	private static Credential credential;
+    private static Credential credential;
 
-	private static SpreadsheetService googleService;
+    private static SpreadsheetService googleService;
 
-	private static SpreadsheetEntry table = null;
-	
-	private MessageContext messages = null;
-	
-	public SpreadsheetInterrogator(MessageContext context) {
-		messages = context;
-	}
+    private static SpreadsheetEntry table = null;
 
-	private static Credential authorize() throws Exception {
+    private MessageContext messages = null;
 
-		if (log.isDebugEnabled()) {
-			log.debug("Google авторизация:");
-		}
+    public SpreadsheetInterrogator(MessageContext context) {
+        messages = context;
+    }
 
-		// load client secrets
-		InputStreamReader clientSecretsReader = new InputStreamReader(
-				Files.newInputStream(Paths.get(CLIENT_SECRETS)));
+    private static Credential authorize() throws Exception {
 
-		clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,
-				clientSecretsReader);
-		if (log.isDebugEnabled()) {
-			log.debug("Клиентские авторизационные данные из файла client_secrets.json подгрузили");
-		}
+        if (log.isDebugEnabled()) {
+            log.debug("Google авторизация:");
+        }
 
-		if (clientSecrets.getDetails().getClientId().startsWith("Enter")
-				|| clientSecrets.getDetails().getClientSecret()
-						.startsWith("Enter ")) {
-			log.warn("Enter Client ID and Secret from https://code.google.com/apis/console/ "
-					+ "into client_secrets.json");
+        // load client secrets
+        InputStreamReader clientSecretsReader = new InputStreamReader(
+                Files.newInputStream(Paths.get(CLIENT_SECRETS)));
 
-			return null;
-		}
+        clientSecrets = GoogleClientSecrets.load(
+                JSON_FACTORY,
+                clientSecretsReader);
+        if (log.isDebugEnabled()) {
+            log.debug("Клиентские авторизационные данные из файла client_secrets.json подгрузили");
+        }
 
-		httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-		dataStoreFactory = new FileDataStoreFactory(DATA_STORE_DIR);
+        if (clientSecrets.getDetails().getClientId().startsWith("Enter")
+                || clientSecrets
+                        .getDetails().getClientSecret()
+                        .startsWith("Enter ")) {
+            log.warn(
+                    "Enter Client ID and Secret from https://code.google.com/apis/console/ "
+                            + "into client_secrets.json");
 
-		// set up authorization code flow
-		GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-				httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
-				.setDataStoreFactory(dataStoreFactory).build();
-		// clientSecrets.getDetails().get
-		//
-		// LocalServerReceiver receiver = new
-		// LocalServerReceiver.Builder().setHost("127.0.0.1").setPort(8080).build();
-		LocalServerReceiver receiver = new LocalServerReceiver();
-		AuthorizationCodeInstalledApp app = new AuthorizationCodeInstalledApp(
-				flow, receiver);
+            return null;
+        }
 
-		if (log.isDebugEnabled()) {
-			log.debug("Авторизуемся приложением для доступа в Google API");
-		}
+        httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+        dataStoreFactory = new FileDataStoreFactory(DATA_STORE_DIR);
 
-		// authorize
-		return app.authorize("user");
-	}
+        // set up authorization code flow
+        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+                httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
+                        .setDataStoreFactory(dataStoreFactory).build();
+        // LocalServerReceiver receiver = new
+        // LocalServerReceiver.Builder().setHost("127.0.0.1").setPort(8080).build();
+        LocalServerReceiver receiver = new LocalServerReceiver();
+        AuthorizationCodeInstalledApp app = new AuthorizationCodeInstalledApp(
+                flow, receiver);
 
-	private Credential getCredetial() throws Exception {
-		if (credential == null) {
-			credential = authorize();
-		}
-		return credential;
-	}
+        if (log.isDebugEnabled()) {
+            log.debug("Авторизуемся приложением для доступа в Google API");
+        }
 
-	private SpreadsheetService getService() {
-		if (googleService == null) {
+        // authorize
+        return app.authorize("user");
+    }
 
-			try {
-				if (log.isInfoEnabled()) {
-					log.info("Подключаюсь к Google сервису...");
-				}
-				
-				// authorization
-				Credential credential = getCredetial();
-				if (credential != null) {
-					// if(credential.refreshToken()) {
-					// if (log.isDebugEnabled()) {
-					// log.debug("Token был обновлен");
-					// }
-					// }
-					if (log.isInfoEnabled()) {
-						log.info("Авторизация в Google есть");
-					}
+    private Credential getCredetial() throws Exception {
+        if (credential == null) {
+            credential = authorize();
+        }
+        return credential;
+    }
 
-					// connect to google service with credential
-					googleService = new SpreadsheetService(
-							Config.getGoogleAppName());
-					googleService.setOAuth2Credentials(credential);
-					if (log.isDebugEnabled()) {
-						log.debug("К Google сервису таблиц с помощью OAuth2 подключились");
-					}
-				}
+    private SpreadsheetService getService() {
+        if (googleService == null) {
 
-				else {
-					log.error("Нет авторизации в Google");
-					messages.addErrorMessage("Нет авторизации в Google");
-				}
+            try {
+                if (log.isInfoEnabled()) {
+                    log.info("Подключаюсь к Google сервису...");
+                }
 
-			} catch (Exception ex) {
-				log.error("Не могу прочитать таблицу баркодов", ex);
-			}
-		}
-		return googleService;
-	}
+                // authorization
+                Credential credential = getCredetial();
+                if (credential != null) {
+                    // if(credential.refreshToken()) {
+                    // if (log.isDebugEnabled()) {
+                    // log.debug("Token был обновлен");
+                    // }
+                    // }
+                    if (log.isInfoEnabled()) {
+                        log.info("Авторизация в Google есть");
+                    }
 
-	private SpreadsheetEntry getTable() {
+                    // connect to google service with credential
+                    googleService = new SpreadsheetService(
+                            Config.getGoogleAppName());
+                    googleService.setOAuth2Credentials(credential);
+                    if (log.isDebugEnabled()) {
+                        log.debug("К Google сервису таблиц с помощью OAuth2 подключились");
+                    }
+                }
 
-		if (table == null) {
+                else {
+                    log.error("Нет авторизации в Google");
+                    messages.addErrorMessage("Нет авторизации в Google");
+                }
 
-			// connect to google service with credential
-			SpreadsheetService googleService = getService();
+            }
+            catch (Exception ex) {
+                log.error("Не могу прочитать таблицу баркодов", ex);
+            }
+        }
+        return googleService;
+    }
 
-			if (googleService != null) {
-				// get table
-				table = GSUtils.getSpreadsheet(googleService,
-						Config.getGoogleSpreadSheetName());
-				if (log.isDebugEnabled()) {
-					log.debug("Доступ к Google таблице {} есть",
-							Config.getGoogleSpreadSheetName());
-				}
-			}
-		}
+    private SpreadsheetEntry getTable() {
 
-		return table;
-	}
+        if (table == null) {
 
-	public Set<PostEntry> getPostEntries() {
-		Set<PostEntry> barcodes = new TreeSet<PostEntry>();
+            // connect to google service with credential
+            SpreadsheetService googleService = getService();
 
-		if (log.isDebugEnabled()) {
-			log.debug("Берем данные из таблицы в виде списка");
-		}
-		List<ListEntry> inputRowList = GSUtils.getRowList(getService(),
-				getTable());
-		
-		int rows = (inputRowList == null ? 0: inputRowList.size());
-		messages.addMessage1("В таблице баркодов " + rows + " строк.");
+            if (googleService != null) {
+                // get table
+                table = GSUtils.getSpreadsheet(
+                        googleService,
+                        Config.getGoogleSpreadSheetName());
+                if (log.isDebugEnabled()) {
+                    log.debug(
+                            "Доступ к Google таблице {} есть",
+                            Config.getGoogleSpreadSheetName());
+                }
+            }
+        }
 
-		if (inputRowList != null) {
-			if (log.isDebugEnabled()) {
-				log.debug("Трансформируем в почтовые записи");
-			}
-			barcodes.addAll(PostUtils.transformToPost(inputRowList, messages));
-		} else {
-			log.warn("Нет исходных данных");
-		}
+        return table;
+    }
 
-		messages.addMessage1(" Уникальных строк с баркодами: " + barcodes.size());
-		
-		// read barcodes spreadsheet
-		return barcodes;
-	}
+    public Set<PostEntry> getPostEntries() {
+        Set<PostEntry> barcodes = new TreeSet<>();
 
-	/**
-	 * @param outputEntries
-	 * @return true если все старые записи были удалены успешно или не удаленого
-	 *         ничего
-	 */
-	public boolean removeOldPostEntries(Set<PostEntry> outputEntries) {
+        if (log.isDebugEnabled()) {
+            log.debug("Берем данные из таблицы в виде списка");
+        }
+        List<ListEntry> inputRowList = GSUtils.getRowList(
+                getService(),
+                getTable());
 
-		if (outputEntries == null || outputEntries.isEmpty()) {
-			log.warn("Нечего подчищать");
-			return false;
-		}
+        int rows = (inputRowList == null ? 0 : inputRowList.size());
+        if (log.isDebugEnabled()) {
+            log.debug("Считали " + rows + " строк баркодов");
+        }
+        messages.addMessage1("В таблице баркодов " + rows + " строк.");
 
-		boolean result = true;
+        if (inputRowList != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Трансформируем в почтовые записи");
+            }
+            barcodes.addAll(PostUtils.transformToPost(inputRowList, messages));
+        }
+        else {
+            log.warn("Нет исходных данных");
+        }
 
-		if (log.isDebugEnabled()) {
-			log.debug("Удаляем старые записи");
-		}
+        messages.addMessage1(" Уникальных строк с баркодами: " + barcodes.size());
 
-		// проходим по выходному списку
-		for (PostEntry pe : outputEntries) {
+        // read barcodes spreadsheet
+        return barcodes;
+    }
 
-			// интересуют только старые записи
-			if (pe instanceof OldPostEntry) {
-				OldPostEntry oldEntry = (OldPostEntry) pe;
+    /**
+     * @param outputEntries
+     * @return true если все старые записи были удалены успешно или не удаленого
+     *         ничего
+     */
+    public boolean removeOldPostEntries(Set<PostEntry> outputEntries) {
 
-				// get data list
-				List<ListEntry> inputRowList = GSUtils.getRowList(getService(),
-						getTable());
-				if (inputRowList != null) {
+        if (outputEntries == null || outputEntries.isEmpty()) {
+            log.warn("Нечего подчищать");
+            return false;
+        }
 
-					for (ListEntry row : inputRowList) {
-						String barcode = row.getCustomElements().getValue(
-								"barcode");
+        boolean result = true;
 
-						// сверяем по баркоду
-						if (oldEntry.getBarcode().equals(barcode)) {
+        if (log.isDebugEnabled()) {
+            log.debug("Удаляем старые записи");
+        }
 
-							try {
-								// Delete the row using the API.
-								row.delete();
+        // проходим по выходному списку
+        for (PostEntry pe : outputEntries) {
 
-								if (log.isDebugEnabled()) {
-									log.debug(
-											" Cтрока с баркодом {} была удалена",
-											barcode);
-								}
+            // интересуют только старые записи
+            if (pe instanceof OldPostEntry) {
+                OldPostEntry oldEntry = (OldPostEntry) pe;
 
-								// удалили одну строку, обновляем весь список
-								break;
+                // get data list
+                List<ListEntry> inputRowList = GSUtils.getRowList(
+                        getService(),
+                        getTable());
+                if (inputRowList != null) {
 
-							} catch (IOException ex) {
-								result &= false;
-								log.error("Не могу удалить строку с баркодом "
-										+ barcode, ex);
-							} catch (ServiceException ex2) {
-								result &= false;
-								log.error("Не могу удалить строку с баркодом "
-										+ barcode);
-							} catch (Exception ex3) {
-								result &= false;
-								log.error("Не могу удалить строку с баркодом "
-										+ barcode, ex3);
-							}
-						}
-					}
+                    for (ListEntry row : inputRowList) {
+                        String barcode = row.getCustomElements().getValue(
+                                "barcode");
 
-				} else {
-					log.warn("Нет исходных данных");
-				}
-			}
+                        // сверяем по баркоду
+                        if (oldEntry.getBarcode().equals(barcode)) {
 
-			// TODO set days
-		}
+                            try {
+                                // Delete the row using the API.
+                                row.delete();
 
-		return result;
-	}
+                                if (log.isDebugEnabled()) {
+                                    log.debug(
+                                            " Cтрока с баркодом {} была удалена",
+                                            barcode);
+                                }
+
+                                // удалили одну строку, обновляем весь список
+                                break;
+
+                            }
+                            catch (IOException ex) {
+                                result &= false;
+                                log.error(
+                                        "Не могу удалить строку с баркодом "
+                                                + barcode,
+                                        ex);
+                            }
+                            catch (ServiceException ex2) {
+                                result &= false;
+                                log.error(
+                                        "Не могу удалить строку с баркодом "
+                                                + barcode);
+                            }
+                            catch (Exception ex3) {
+                                result &= false;
+                                log.error(
+                                        "Не могу удалить строку с баркодом "
+                                                + barcode,
+                                        ex3);
+                            }
+                        }
+                    }
+
+                }
+                else {
+                    log.warn("Нет исходных данных");
+                }
+            }
+
+            // TODO set days
+        }
+
+        return result;
+    }
 
 }

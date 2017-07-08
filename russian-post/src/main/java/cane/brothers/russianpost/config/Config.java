@@ -79,8 +79,9 @@ public class Config {
 			mailTo = prop.getProperty("mail_to");
 			mailSubjecy = prop.getProperty("mail_subject");
 			
-			googleAppName = prop.getProperty("google_app_name", "CaneBrothers-RPC/1.4");
+			googleAppName = prop.getProperty("google_app_name", "CaneBrothers-RPC/1.7");
 			googleSpreadSheetName = prop.getProperty("google_spreadsheet_name", "barcodes-sample");
+			dataStoreDir = prop.getProperty("google_datastore_dir");
 			
 			log.info("настройки считаны");
 

@@ -3,7 +3,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>cane.brothers</groupId>
-	<version>1.7</version>
+	<artifactId>rpc-console</artifactId>
+	<version>1.8</version>
+	<packaging>jar</packaging>
 
 	<name>russian-post-client</name>
 
@@ -55,6 +57,7 @@
 	</organization>
 
 	<build>
+		<finalName>rpc-${project.version}</finalName>
 		<plugins>
 
 			<!-- download source code in Eclipse, best practice -->
@@ -160,5 +163,5 @@
 			</plugin>
 		</plugins>
 	</build>
-	<artifactId>rpc</artifactId>
+	
 </project>
